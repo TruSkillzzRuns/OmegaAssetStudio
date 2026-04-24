@@ -1,0 +1,31 @@
+Textures 2.0 Workflow
+
+1. Load the target texture package or disk texture set.
+Open the UPK or the texture folder that contains the assets you want to inspect. Wait for the texture list to finish populating before you choose a texture. If you are working from a package, make sure the selected UPK is the correct character or costume package before editing anything.
+
+2. Choose the texture you want to replace or inspect.
+Click the texture entry in the list and confirm the preview updates immediately. Check the texture name, source path, size, format, mip count, and cache state before you continue. If the wrong entry is selected, switch to the correct one first so the replacement happens on the intended asset.
+
+3. Inspect the texture channels.
+Use the preview controls to compare Diffuse, Normal, Specular, and Mask information. Check alpha behavior if the asset uses transparency or cutout data. If the texture is a character skin, costume piece, or effect layer, verify the channel data matches the role the texture plays in the final render.
+
+4. Decide whether you are repairing, replacing, or exporting.
+If the texture is already correct but needs to be written back in a different format or cache state, prepare it for replacement. If you need to edit the image first, fix it in your source editor before you stage it. If you only need a backup or external inspection copy, export the current texture before making any changes.
+
+5. Stage the replacement texture.
+Use Import / Replace to choose the file that will become the pending replacement. Confirm the preview updates to the new image and check that the resolution, aspect ratio, and color data still look correct. If the staged file is wrong, choose a different source before applying anything.
+
+6. Validate the TFC and manifest references.
+Run Validate Inject to confirm the manifest is loaded, the cache entry is resolved, and the texture can be written into the current TFC path. Check for missing manifests, unresolved cache entries, or incorrect cache targets. Fix those problems before trying to inject the texture.
+
+7. Confirm the pending replacement details.
+Review the pending replacement text in the details panel and verify the file path is the one you expect. Check whether the staged file is being resized, converted, or reformatted before writeback. If the pending state does not match your intended asset, stop and restage it.
+
+8. Apply the replacement or inject the texture.
+Use Apply Pending if you want to commit the staged replacement directly. Use Inject if you are writing the current texture state back into the package workflow. Watch the log output for confirmation that the target texture was prepared, resized if necessary, and written successfully.
+
+9. Regenerate mips or upscale when needed.
+If the texture needs a new mip chain, run Regenerate Mips after the main replacement. If the image needs a higher source resolution, use Upscale to 4K or the selected upscale method before you inject. Only do this when the target asset actually needs the larger size, because unnecessary upscaling can introduce blur or compression artifacts.
+
+10. Review the final texture result.
+Inspect the updated texture again after injection. Check the preview, alpha, channel display, and cache state one more time to confirm the writeback preserved the intended look. If the result is wrong, use Undo or Reset before trying another replacement pass.

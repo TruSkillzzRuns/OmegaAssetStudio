@@ -1,0 +1,22 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Color x:Key="OmegaAssetStudio.PageBackgroundColor">#FF121418</Color>
+    <Color x:Key="OmegaAssetStudio.PanelBackgroundColor">#FF1B1F24</Color>
+    <Color x:Key="OmegaAssetStudio.PanelSecondaryColor">#FF232933</Color>
+    <Color x:Key="OmegaAssetStudio.PanelBorderColor">#FF2F3846</Color>
+    <Color x:Key="OmegaAssetStudio.TextPrimaryColor">#FFF3F4F6</Color>
+    <Color x:Key="OmegaAssetStudio.TextSecondaryColor">#FFB5BDC9</Color>
+    <Color x:Key="OmegaAssetStudio.AccentColor">#FF4BC2FF</Color>
+    <Color x:Key="OmegaAssetStudio.DarkSurfaceTextColor">#FFF8FAFC</Color>
+
+    <SolidColorBrush x:Key="OmegaAssetStudio.PageBackgroundBrush" Color="{StaticResource OmegaAssetStudio.PageBackgroundColor}" />
+    <SolidColorBrush x:Key="OmegaAssetStudio.PanelBackgroundBrush" Color="{StaticResource OmegaAssetStudio.PanelBackgroundColor}" />
+    <SolidColorBrush x:Key="OmegaAssetStudio.PanelSecondaryBrush" Color="{StaticResource OmegaAssetStudio.PanelSecondaryColor}" />
+    <SolidColorBrush x:Key="OmegaAssetStudio.PanelBorderBrush" Color="{StaticResource OmegaAssetStudio.PanelBorderColor}" />
+    <SolidColorBrush x:Key="OmegaAssetStudio.TextPrimaryBrush" Color="{StaticResource OmegaAssetStudio.TextPrimaryColor}" />
+    <SolidColorBrush x:Key="OmegaAssetStudio.TextSecondaryBrush" Color="{StaticResource OmegaAssetStudio.TextSecondaryColor}" />
+    <SolidColorBrush x:Key="OmegaAssetStudio.AccentBrush" Color="{StaticResource OmegaAssetStudio.AccentColor}" />
+    <SolidColorBrush x:Key="OmegaAssetStudio.DarkSurfaceTextBrush" Color="{StaticResource OmegaAssetStudio.DarkSurfaceTextColor}" />
+</ResourceDictionary>

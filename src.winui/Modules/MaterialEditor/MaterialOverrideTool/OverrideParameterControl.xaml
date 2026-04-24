@@ -1,0 +1,14 @@
+﻿<UserControl
+    x:Class="OmegaAssetStudio.WinUI.Modules.MaterialEditor.MaterialOverrideTool.OverrideParameterControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Border Padding="12"
+            CornerRadius="10"
+            Background="{ThemeResource OmegaAssetStudio.PanelSecondaryBrush}"
+            BorderBrush="{ThemeResource OmegaAssetStudio.PanelBorderBrush}"
+            BorderThickness="1">
+        <TextBlock Text="Override Parameters" FontWeight="SemiBold" />
+    </Border>
+</UserControl>
+

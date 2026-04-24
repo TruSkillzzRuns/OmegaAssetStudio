@@ -1,0 +1,31 @@
+Material Editor 1.0 Workflow
+
+1. Load the source UPK.
+Use Load UPK to open the package that contains the materials you want to inspect or edit. Wait for the material browser to populate before selecting anything. If the UPK contains multiple material families, confirm the package name first so you do not edit the wrong character set.
+
+2. Select the material you want to edit.
+Click the material in the browser and confirm the preview title, material type, texture count, scalar count, and vector count update. Make sure the selected material is the one actually used by the character or costume piece you want to change. If the wrong material is selected, switch to the correct one before editing parameters.
+
+3. Choose the skeletal mesh preview source.
+Use the Skeletal Mesh dropdown to pick the character mesh that should display the material in the preview window. Pick the mesh that matches the material family whenever possible so the preview reflects the real in-game placement. If a better mesh becomes available from the same package, switch to it before judging the material result.
+
+4. Pick the preview LOD.
+Use the Preview LOD selector to inspect the material on different LOD levels of the chosen skeletal mesh. Check whether the texture density, UV scale, and shading still look correct when the mesh drops to a lower LOD. If a material only looks correct on one LOD, note that before you save the changes.
+
+5. Inspect the texture slots.
+Review each texture slot in the inspector and confirm the slot name, texture name, and texture path. Use Select to sync the slot to the preview channel and use Open in Textures 2.0 when you want to jump into the texture workflow for the currently assigned asset. If a slot is missing or points at the wrong texture, replace it before adjusting any scalar or vector values.
+
+6. Replace a texture through the texture editor workflow.
+Use Replace to stage a new texture for the selected slot. If the image needs format conversion, mip changes, or TFC handling, delegate that work through Textures 2.0 instead of trying to work around it here. After replacement, verify the preview updates and confirm the correct slot is still selected.
+
+7. Adjust scalar parameters.
+Change the scalar value for each material parameter that controls brightness, roughness, tiling, mask thresholds, falloff, or similar tuning values. Use the default value as the reference whenever possible so you know what changed. If a scalar change makes the material look wrong on the preview mesh, reset it before trying another setting.
+
+8. Adjust vector parameters.
+Use the vector controls for color, tint, or directional parameter values. Check the preview after each change so you can see whether the material still matches the intended in-game appearance. If a vector parameter is used by multiple effects, keep a note of the original value before changing it.
+
+9. Reset only what you need.
+Use Reset on a single parameter when you want to revert one value without losing the rest of the material work. Use Reset All if the material preview gets into a bad state and you need to return the material, texture channels, and preview selection to the loaded baseline. This is the safest way to recover if a test edit is not working.
+
+10. Save and verify the material.
+Use Save Material only after the preview looks correct on the chosen skeletal mesh and LOD. Reopen the material or reload the UPK if you want to verify that the saved state still matches what you saw in the preview. If the result does not match the preview, recheck the texture slot mapping and parameter values before saving again.

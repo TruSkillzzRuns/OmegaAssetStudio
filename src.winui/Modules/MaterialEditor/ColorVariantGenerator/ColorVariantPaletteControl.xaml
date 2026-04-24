@@ -1,0 +1,26 @@
+﻿<UserControl
+    x:Class="OmegaAssetStudio.WinUI.Modules.MaterialEditor.ColorVariantGenerator.ColorVariantPaletteControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Border Padding="12"
+            CornerRadius="10"
+            Background="{ThemeResource OmegaAssetStudio.PanelSecondaryBrush}"
+            BorderBrush="{ThemeResource OmegaAssetStudio.PanelBorderBrush}"
+            BorderThickness="1">
+        <StackPanel Spacing="8">
+            <TextBlock Text="Color Variants" FontWeight="SemiBold" />
+            <ListView ItemsSource="{Binding Variants}" SelectedItem="{Binding SelectedVariant, Mode=TwoWay}">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="{Binding Name}" />
+                            <TextBlock Opacity="0.7" Text="{Binding PrimaryColor}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </StackPanel>
+    </Border>
+</UserControl>
+

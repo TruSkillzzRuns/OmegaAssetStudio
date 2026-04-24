@@ -1,0 +1,134 @@
+﻿<Window
+    x:Class="OmegaAssetStudio.WinUI.Popouts.RetargetAnimationPreviewWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="Retarget Animation Preview">
+
+    <Grid Padding="16" RowSpacing="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Spacing="4">
+            <TextBlock FontSize="28"
+                       FontWeight="SemiBold"
+                       Text="Animation Preview" />
+            <TextBlock x:Name="PreviewSourceText"
+                       Opacity="0.78"
+                       TextWrapping="Wrap"
+                       Text="Load a retarget source from the Retarget workspace to preview poses here." />
+        </StackPanel>
+
+        <Border Grid.Row="1"
+                Padding="12"
+                CornerRadius="14"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1">
+            <StackPanel Spacing="8">
+                <ComboBox x:Name="PosePresetComboBox"
+                          SelectionChanged="PosePresetComboBox_SelectionChanged">
+                    <ComboBoxItem Content="BindPose" IsSelected="True" />
+                    <ComboBoxItem Content="APose" />
+                    <ComboBoxItem Content="TPose" />
+                    <ComboBoxItem Content="ArmsUp" />
+                    <ComboBoxItem Content="LegStep" />
+                    <ComboBoxItem Content="TwistCheck" />
+                </ComboBox>
+                <StackPanel Orientation="Horizontal"
+                            Spacing="8">
+                    <Button Content="Apply Pose"
+                            Click="ApplyPoseButton_Click" />
+                    <Button Content="Reset Pose"
+                            Click="ResetPoseButton_Click" />
+                    <Button Content="Reset Camera"
+                            Click="ResetCameraButton_Click" />
+                </StackPanel>
+                <Border Padding="10"
+                        CornerRadius="12"
+                        Background="#171B23"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1">
+                    <StackPanel Spacing="8">
+                        <TextBlock FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Text="AnimSet Playback" />
+                        <TextBlock x:Name="AnimSetStatusText"
+                                   Opacity="0.75"
+                                   TextWrapping="Wrap"
+                                   Text="No AnimSet loaded." />
+                        <ComboBox x:Name="SequenceComboBox"
+                                  DisplayMemberPath="DisplayName"
+                                  SelectionChanged="SequenceComboBox_SelectionChanged" />
+                        <StackPanel Orientation="Horizontal"
+                                    Spacing="8">
+                            <Button x:Name="PlayPauseButton"
+                                    Content="Play"
+                                    Click="PlayPauseButton_Click" />
+                            <Button Content="Stop"
+                                    Click="StopPlaybackButton_Click" />
+                            <Button Content="Clear Sequence"
+                                    Click="ClearSequenceButton_Click" />
+                        </StackPanel>
+                        <TextBlock x:Name="PlaybackTimeText"
+                                   Opacity="0.75"
+                                   Text="0.000 s" />
+                        <Slider x:Name="PlaybackTimeSlider"
+                                Minimum="0"
+                                Maximum="1"
+                                ValueChanged="PlaybackTimeSlider_ValueChanged" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="2"
+                x:Name="PreviewViewportHost"
+                CornerRadius="14"
+                Background="#10141B"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                PointerPressed="PreviewViewportHost_PointerPressed"
+                PointerMoved="PreviewViewportHost_PointerMoved"
+                PointerReleased="PreviewViewportHost_PointerReleased"
+                PointerWheelChanged="PreviewViewportHost_PointerWheelChanged">
+            <Grid>
+                <SwapChainPanel x:Name="PreviewSwapChainPanel"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch"
+                                IsHitTestVisible="False"
+                                Loaded="PreviewSurface_Loaded"
+                                SizeChanged="PreviewSurface_SizeChanged"
+                                Visibility="Collapsed" />
+                <Image x:Name="PreviewImage"
+                       HorizontalAlignment="Stretch"
+                       VerticalAlignment="Stretch"
+                       IsHitTestVisible="False"
+                       Stretch="Uniform"
+                       Visibility="Collapsed" />
+            </Grid>
+        </Border>
+
+        <StackPanel Grid.Row="3"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Stretch"
+                    Spacing="16">
+            <TextBlock x:Name="PreviewStatsText"
+                       VerticalAlignment="Center"
+                       Opacity="0.78"
+                       Text="Idle" />
+            <TextBlock x:Name="PreviewStatusText"
+                       VerticalAlignment="Center"
+                       TextWrapping="Wrap"
+                       Opacity="0.78"
+                       Text="Load a source mesh to start the animation preview." />
+        </StackPanel>
+    </Grid>
+</Window>
+

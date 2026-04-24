@@ -1,0 +1,31 @@
+Mesh Fusion Lab Workflow
+
+1. Load Mesh A and Mesh B.
+Browse the first skeletal mesh you want to fuse, then browse the second skeletal mesh that will receive the merged result. Mesh A is the source mesh that contributes the region you want to keep. Mesh B is the target mesh that will be rebuilt around the fused result. Make sure both meshes are loaded successfully before you continue.
+
+2. Confirm both meshes are compatible.
+Compare the skeletons, scale, and general pose of Mesh A and Mesh B. If one mesh is noticeably larger, rotated, or in a different rest pose, fix that before extracting anything. Fusion works best when both meshes already share the same base orientation and roughly the same skeleton structure.
+
+3. Inspect the source mesh by section and bone influence.
+Use the section list, the triangle view, and the bone influence display to decide exactly which part of Mesh A should be extracted. Pick a bone that clearly drives the region you want, then confirm the preview highlights the correct vertices. If the selected bone influences too much geometry, narrow the choice before extracting.
+
+4. Refine the region selection.
+Use triangle hit testing to click visible surfaces and confirm you are targeting the right part of the mesh. Add or subtract triangles until the selected region contains the full area you want with as little extra geometry as possible. Pay attention to seams, accessory parts, gloves, boots, armor plates, and other pieces that can accidentally pull in nearby vertices.
+
+5. Extract the geometry subset from Mesh A.
+Run the extraction step after the region is confirmed. The extracted subset should contain only the geometry you want to move into Mesh B. Check the preview for stray vertices, missing faces, broken borders, and any unexpected material fragments before transforming it.
+
+6. Transform the extracted region into Mesh B space.
+Apply the target mesh coordinate space so the extracted region lines up with Mesh B. This step should move the extracted subset into the same position, orientation, and scale as the target mesh. If the transformed piece looks offset, twisted, or inverted, correct the transform before merging.
+
+7. Merge the transformed geometry into Mesh B.
+Insert the transformed subset into the target mesh. Make sure the imported region does not duplicate existing geometry unless that is intentional. Check for overlapping faces, duplicate sections, material conflicts, and mismatched UV islands before rebuilding the mesh data.
+
+8. Rebuild the mesh data.
+Recalculate normals first so the lighting follows the new geometry cleanly. Rebuild tangents and UV seams next so shading and texture boundaries stay stable. Rebuild bone weights after that so the new geometry deforms correctly with the skeleton. Then rebuild material slots, LODs, sockets, and bounding boxes so the final package behaves like a complete skeletal mesh instead of a partial edit.
+
+9. Validate the fused mesh.
+Rotate the preview and inspect the merged result from multiple angles. Look for bad seams, broken weights, lighting artifacts, floating geometry, missing attachments, or deformation errors. Confirm the final skeleton, section layout, and bounding box still make sense for the target mesh.
+
+10. Export the unified skeletal mesh.
+When the merged mesh looks correct, export the final unified result. Use the export path that matches your intended downstream workflow. Only export after the region selection, transformation, merge, and rebuild steps all pass visual inspection.

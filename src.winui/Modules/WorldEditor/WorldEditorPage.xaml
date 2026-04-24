@@ -1,0 +1,119 @@
+﻿<Page
+    x:Class="OmegaAssetStudio.WinUI.Modules.WorldEditor.WorldEditorPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="using:Microsoft.UI.Xaml.Controls"
+    xmlns:worldEditorGeometry="using:OmegaAssetStudio.WinUI.Modules.WorldEditor.WorldGeometryEditor"
+    xmlns:worldEditorProp="using:OmegaAssetStudio.WinUI.Modules.WorldEditor.PropBrowser"
+    mc:Ignorable="d">
+
+    <Grid Margin="16" RowSpacing="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Spacing="8">
+            <TextBlock FontSize="28"
+                       FontWeight="SemiBold"
+                       Text="World Editor" />
+            <TextBlock Opacity="0.78"
+                       TextWrapping="Wrap"
+                       Text="World geometry, props, collision, navmesh, lighting, triggers, and minimap tools will live here." />
+        </StackPanel>
+
+        <controls:TabView Grid.Row="1">
+            <controls:TabViewItem Header="Preview">
+                <Grid Padding="16" RowSpacing="12">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <StackPanel Spacing="6">
+                        <TextBlock FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Text="World Preview" />
+                        <TextBlock Opacity="0.78"
+                                   TextWrapping="Wrap"
+                                   Text="This foundation view keeps the world tools isolated from Mesh Preview." />
+                    </StackPanel>
+                    <TextBlock Grid.Row="1"
+                               Opacity="0.72"
+                               TextWrapping="Wrap"
+                               Text="Phase 1 shared services are ready. Phase 2+ viewers and editors will bind into this host." />
+                </Grid>
+            </controls:TabViewItem>
+
+            <controls:TabViewItem Header="Geometry">
+                <worldEditorGeometry:WorldGeometryViewerView xmlns:worldEditorGeometry="using:OmegaAssetStudio.WinUI.Modules.WorldEditor.WorldGeometryViewer" />
+            </controls:TabViewItem>
+
+            <controls:TabViewItem Header="Geometry Editor">
+                <worldEditorGeometry:WorldGeometryEditorView />
+            </controls:TabViewItem>
+
+            <controls:TabViewItem Header="Props">
+                <Grid ColumnSpacing="16" Padding="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="360" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Border Padding="16"
+                            CornerRadius="16"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1">
+                        <worldEditorProp:PropListControl ViewModel="{x:Bind ViewModel, Mode=OneWay}" />
+                    </Border>
+                    <Border Grid.Column="1"
+                            Padding="16"
+                            CornerRadius="16"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1">
+                        <worldEditorProp:PropPreviewControl ViewModel="{x:Bind ViewModel, Mode=OneWay}" />
+                    </Border>
+                </Grid>
+            </controls:TabViewItem>
+
+            <controls:TabViewItem Header="Collision">
+                <Grid Padding="16">
+                    <TextBlock TextWrapping="Wrap"
+                               Text="Collision viewer will be added in the next phase." />
+                </Grid>
+            </controls:TabViewItem>
+
+            <controls:TabViewItem Header="Navmesh">
+                <Grid Padding="16">
+                    <TextBlock TextWrapping="Wrap"
+                               Text="Navmesh viewer will be added in the next phase." />
+                </Grid>
+            </controls:TabViewItem>
+
+            <controls:TabViewItem Header="Lighting">
+                <Grid Padding="16">
+                    <TextBlock TextWrapping="Wrap"
+                               Text="Lighting viewer will be added in the next phase." />
+                </Grid>
+            </controls:TabViewItem>
+
+            <controls:TabViewItem Header="Triggers">
+                <Grid Padding="16">
+                    <TextBlock TextWrapping="Wrap"
+                               Text="Trigger viewer will be added in the next phase." />
+                </Grid>
+            </controls:TabViewItem>
+
+            <controls:TabViewItem Header="Minimap">
+                <Grid Padding="16">
+                    <TextBlock TextWrapping="Wrap"
+                               Text="Minimap editor will be added in the next phase." />
+                </Grid>
+            </controls:TabViewItem>
+        </controls:TabView>
+    </Grid>
+</Page>
+

@@ -1,0 +1,449 @@
+﻿<Page
+    x:Class="OmegaAssetStudio.WinUI.Pages.MeshPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Margin="16"
+          RowSpacing="12"
+          Background="{ThemeResource OmegaAssetStudio.PageBackgroundBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Spacing="8">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                <TextBlock FontSize="28"
+                           FontWeight="SemiBold"
+                           Text="Mesh Workspace" />
+                <Button Grid.Column="1"
+                        MinHeight="36"
+                        Padding="12,6"
+                        HorizontalAlignment="Right"
+                        Click="WorkflowsButton_Click">
+                    <TextBlock Text="Workflows"
+                               TextWrapping="Wrap"
+                               TextAlignment="Center" />
+                </Button>
+            </Grid>
+            <TextBlock Opacity="0.78"
+                       TextWrapping="Wrap"
+                       Text="First real WinUI mesh migration slice. This page now loads live SkeletalMesh exports and LOD data from a selected UPK." />
+            <StackPanel Orientation="Horizontal"
+                        Spacing="8"
+                        HorizontalAlignment="Stretch">
+                <Button MinHeight="40"
+                        Click="PreviewViewButton_Click">
+                    <TextBlock Text="Preview"
+                               TextWrapping="Wrap"
+                               TextAlignment="Center" />
+                </Button>
+                <Button MinHeight="40"
+                        Click="ExporterViewButton_Click">
+                    <TextBlock Text="Exporter"
+                               TextWrapping="Wrap"
+                               TextAlignment="Center" />
+                </Button>
+                <Button MinHeight="40"
+                        Click="ImporterViewButton_Click">
+                    <TextBlock Text="Importer"
+                               TextWrapping="Wrap"
+                               TextAlignment="Center" />
+                </Button>
+                <Button MinHeight="40"
+                        Click="SectionsViewButton_Click">
+                    <TextBlock Text="Sections"
+                               TextWrapping="Wrap"
+                               TextAlignment="Center" />
+                </Button>
+            </StackPanel>
+        </StackPanel>
+
+        <Grid Grid.Row="1" ColumnSpacing="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="330" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Border Padding="12"
+                    CornerRadius="18"
+                    Background="{ThemeResource OmegaAssetStudio.PanelBackgroundBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1">
+                <ScrollViewer VerticalScrollBarVisibility="Visible"
+                              VerticalScrollMode="Enabled"
+                              HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Spacing="10">
+                        <TextBlock FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Text="Source" />
+                        <TextBox x:Name="CurrentPathBox"
+                                 IsReadOnly="True"
+                                 TextWrapping="Wrap"
+                                 AcceptsReturn="True"
+                                 MinHeight="80"
+                                 Text="{x:Bind CurrentPathText.Text, Mode=OneWay}" />
+
+                        <ItemsControl HorizontalAlignment="Stretch">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <ItemsWrapGrid Orientation="Horizontal" MaximumRowsOrColumns="2" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <Button MinHeight="44"
+                                    Margin="0,0,8,8"
+                                    Click="OpenUpkButton_Click">
+                                <TextBlock Text="Load UE3 Mesh From UPK"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button MinHeight="44"
+                                    Margin="0,0,8,8"
+                                    Click="LoadFbxButton_Click">
+                                <TextBlock Text="Load FBX Mesh"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button MinHeight="44"
+                                    Margin="0,0,8,8"
+                                    Click="UseHandoffButton_Click">
+                                <TextBlock Text="Use Current UPK"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                        </ItemsControl>
+                        <TextBlock x:Name="CurrentPathText"
+                                   Visibility="Collapsed"
+                                   Text="No mesh package loaded yet." />
+
+                        <TextBlock Margin="0,8,0,0"
+                                   FontWeight="SemiBold"
+                                   Text="Mesh Filter" />
+                        <TextBox x:Name="MeshFilterBox"
+                                 TextChanged="MeshFilterBox_TextChanged"
+                                 PlaceholderText="Filter SkeletalMesh exports..." />
+
+                        <TextBlock FontWeight="SemiBold"
+                                   Text="SkeletalMesh Export" />
+                        <ComboBox x:Name="MeshComboBox"
+                                  SelectionChanged="MeshComboBox_SelectionChanged"
+                                  PlaceholderText="Select a SkeletalMesh export..." />
+
+                        <TextBlock FontWeight="SemiBold"
+                                   Text="LOD" />
+                        <ComboBox x:Name="LodComboBox"
+                                  SelectionChanged="LodComboBox_SelectionChanged"
+                                  PlaceholderText="Select LOD..." />
+
+                        <TextBlock Margin="0,8,0,0"
+                                   FontWeight="SemiBold"
+                                   Text="Status" />
+                        <ListView x:Name="StatusRowsList"
+                                  MaxHeight="420"
+                                  ItemsSource="{x:Bind StatusRows, Mode=OneWay}" />
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <Grid Grid.Column="1"
+                  RowSpacing="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock x:Name="InspectorTitle"
+                           FontSize="20"
+                           FontWeight="SemiBold"
+                           Text="Mesh Inspector" />
+                <TextBlock x:Name="InspectorSubtitle"
+                           Grid.Row="1"
+                           Opacity="0.78"
+                           TextWrapping="Wrap"
+                           Text="Select a SkeletalMesh export to inspect summary and LOD information." />
+
+                <Grid Grid.Row="2"
+                      x:Name="PreviewPanel">
+                    <Border CornerRadius="16"
+                            Background="{ThemeResource OmegaAssetStudio.PanelBackgroundBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1">
+                        <Grid Margin="18">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <Grid Grid.Row="0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock x:Name="PreviewStatusText"
+                                           MaxWidth="620"
+                                           Opacity="0.85"
+                                           TextWrapping="Wrap"
+                                           Text="Native WinUI mesh preview will render here." />
+                                <StackPanel Grid.Column="1"
+                                            HorizontalAlignment="Right"
+                                            Spacing="2">
+                                    <TextBlock x:Name="PreviewMeshNameText"
+                                               FontSize="20"
+                                               FontWeight="SemiBold"
+                                               HorizontalAlignment="Right"
+                                               Text="{x:Bind InspectorTitle.Text, Mode=OneWay}" />
+                                    <TextBlock x:Name="PreviewMeshStatsText"
+                                               Foreground="{ThemeResource OmegaAssetStudio.AccentBrush}"
+                                               HorizontalAlignment="Right"
+                                               Text="Ready" />
+                                </StackPanel>
+                            </Grid>
+
+                            <Border Grid.Row="1"
+                                    x:Name="PreviewViewportHost"
+                                    Margin="0,0,0,0"
+                                    MinHeight="520"
+                                    MinWidth="720"
+                                    CornerRadius="14"
+                                    Background="{ThemeResource OmegaAssetStudio.PanelSecondaryBrush}"
+                                    BorderBrush="{ThemeResource OmegaAssetStudio.PanelBorderBrush}"
+                                    BorderThickness="1"
+                                    HorizontalAlignment="Stretch"
+                                    VerticalAlignment="Stretch"
+                                    PointerPressed="PreviewViewportHost_PointerPressed"
+                                    SizeChanged="PreviewViewportHost_SizeChanged"
+                                    PointerMoved="PreviewViewportHost_PointerMoved"
+                                    PointerReleased="PreviewViewportHost_PointerReleased"
+                                    PointerWheelChanged="PreviewViewportHost_PointerWheelChanged">
+                                <Grid>
+                                    <SwapChainPanel x:Name="PreviewSwapChainPanel"
+                                                    MinWidth="320"
+                                                    MinHeight="240"
+                                                    HorizontalAlignment="Stretch"
+                                                    VerticalAlignment="Stretch"
+                                                    Loaded="PreviewSurface_Loaded"
+                                                    SizeChanged="PreviewSurface_SizeChanged"
+                                                    Visibility="Collapsed" />
+                                    <Image x:Name="PreviewImage"
+                                           HorizontalAlignment="Stretch"
+                                           VerticalAlignment="Stretch"
+                                           IsHitTestVisible="False"
+                                           Stretch="Uniform"
+                                           Visibility="Collapsed" />
+                                    <Canvas x:Name="PreviewBoneNamesCanvas"
+                                            HorizontalAlignment="Stretch"
+                                            VerticalAlignment="Stretch"
+                                            IsHitTestVisible="False"
+                                            Visibility="Collapsed" />
+
+                                    <Border HorizontalAlignment="Right"
+                                            VerticalAlignment="Top"
+                                            Margin="0,12,12,12"
+                                            Padding="14"
+                                            Width="300"
+                                            MaxHeight="760"
+                                            CornerRadius="14"
+                                            Background="{ThemeResource OmegaAssetStudio.PanelBackgroundBrush}"
+                                            BorderBrush="{ThemeResource OmegaAssetStudio.PanelBorderBrush}"
+                                            BorderThickness="1">
+                                        <ScrollViewer VerticalScrollBarVisibility="Visible"
+                                                      VerticalScrollMode="Enabled"
+                                                      HorizontalScrollBarVisibility="Disabled">
+                                            <StackPanel Spacing="8">
+                                                <TextBlock Text="Controls"
+                                                           FontSize="22"
+                                                           FontWeight="SemiBold" />
+                                                <TextBlock FontWeight="SemiBold" Text="Renderer:" />
+                                                <ComboBox x:Name="PreviewRendererComboBox"
+                                                          SelectionChanged="PreviewComboSetting_Changed" />
+                                                <TextBlock FontWeight="SemiBold" Text="Display Mode:" />
+                                                <ComboBox x:Name="PreviewDisplayModeComboBox"
+                                                          SelectionChanged="PreviewComboSetting_Changed" />
+                                                <TextBlock FontWeight="SemiBold" Text="Shading Mode:" />
+                                                <ComboBox x:Name="PreviewShadingModeComboBox"
+                                                          SelectionChanged="PreviewComboSetting_Changed" />
+                                                <TextBlock FontWeight="SemiBold" Text="Lighting Preset:" />
+                                                <ComboBox x:Name="PreviewLightingComboBox"
+                                                          SelectionChanged="PreviewComboSetting_Changed" />
+                                                <TextBlock FontWeight="SemiBold" Text="Material Channel:" />
+                                                <ComboBox x:Name="PreviewMaterialChannelComboBox"
+                                                          SelectionChanged="PreviewComboSetting_Changed" />
+                                                <TextBlock FontWeight="SemiBold" Text="Background:" />
+                                                <ComboBox x:Name="PreviewBackgroundComboBox"
+                                                          SelectionChanged="PreviewComboSetting_Changed" />
+                                                <TextBlock FontWeight="SemiBold" Text="Weight View:" />
+                                                <ComboBox x:Name="PreviewWeightViewComboBox"
+                                                          SelectionChanged="PreviewComboSetting_Changed" />
+                                                <TextBlock FontWeight="SemiBold" Text="Section Focus:" />
+                                                <ComboBox x:Name="PreviewSectionFocusModeComboBox"
+                                                          SelectionChanged="PreviewComboSetting_Changed" />
+                                                <TextBlock FontWeight="SemiBold" Text="Focused Section:" />
+                                                <ComboBox x:Name="PreviewSectionComboBox"
+                                                          SelectionChanged="PreviewComboSetting_Changed"
+                                                          PlaceholderText="(All Sections)" />
+                                                <TextBlock FontWeight="SemiBold" Text="Influence Bone:" />
+                                                <ComboBox x:Name="PreviewBoneComboBox"
+                                                          SelectionChanged="PreviewComboSetting_Changed"
+                                                          PlaceholderText="No bone selected" />
+                                                <TextBlock FontWeight="SemiBold" Text="Ambient Light:" />
+                                                <Slider x:Name="PreviewAmbientLightSlider"
+                                                        Minimum="0"
+                                                        Maximum="100"
+                                                        StepFrequency="10"
+                                                        Value="30"
+                                                        ValueChanged="PreviewSliderSetting_Changed" />
+                                                <StackPanel Margin="0,4,0,0" Spacing="6">
+                                                    <CheckBox x:Name="PreviewShowFbxCheckBox" Content="Show FBX Mesh" IsChecked="True" Checked="PreviewToggleSetting_Changed" Unchecked="PreviewToggleSetting_Changed" />
+                                                    <CheckBox x:Name="PreviewShowUe3CheckBox" Content="Show UE3 Mesh" IsChecked="True" Checked="PreviewToggleSetting_Changed" Unchecked="PreviewToggleSetting_Changed" />
+                                                    <CheckBox x:Name="PreviewWireframeCheckBox" Content="Wireframe" Checked="PreviewToggleSetting_Changed" Unchecked="PreviewToggleSetting_Changed" />
+                                                    <CheckBox x:Name="PreviewShowGroundCheckBox" Content="Show Ground Plane" IsChecked="True" Checked="PreviewToggleSetting_Changed" Unchecked="PreviewToggleSetting_Changed" />
+                                                    <CheckBox x:Name="PreviewShowBonesCheckBox" Content="Show Bones" Checked="PreviewToggleSetting_Changed" Unchecked="PreviewToggleSetting_Changed" />
+                                                    <CheckBox x:Name="PreviewShowBoneNamesCheckBox" Content="Show Bone Names" Checked="PreviewToggleSetting_Changed" Unchecked="PreviewToggleSetting_Changed" />
+                                                    <CheckBox x:Name="PreviewShowWeightsCheckBox" Content="Show Weights" Checked="PreviewToggleSetting_Changed" Unchecked="PreviewToggleSetting_Changed" />
+                                                    <CheckBox x:Name="PreviewShowSectionsCheckBox" Content="Show Sections" Checked="PreviewToggleSetting_Changed" Unchecked="PreviewToggleSetting_Changed" />
+                                                    <CheckBox x:Name="PreviewShowNormalsCheckBox" Content="Show Normals" Checked="PreviewToggleSetting_Changed" Unchecked="PreviewToggleSetting_Changed" />
+                                                    <CheckBox x:Name="PreviewShowTangentsCheckBox" Content="Show Tangents" Checked="PreviewToggleSetting_Changed" Unchecked="PreviewToggleSetting_Changed" />
+                                                    <CheckBox x:Name="PreviewShowUvSeamsCheckBox" Content="Show UV Seams" Checked="PreviewToggleSetting_Changed" Unchecked="PreviewToggleSetting_Changed" />
+                                                </StackPanel>
+                                                <StackPanel Margin="0,6,0,0" Orientation="Horizontal" Spacing="8">
+                                                    <Button Content="Reset Preview"
+                                                            Click="ResetPreviewButton_Click" />
+                                                    <Button Content="Reset Camera"
+                                                            Click="ResetCameraButton_Click" />
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </ScrollViewer>
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </Border>
+                </Grid>
+
+                    <Grid x:Name="ExporterPanel"
+                          Grid.Row="2"
+                          Visibility="Collapsed">
+                        <Border Padding="12"
+                                CornerRadius="12"
+                                Background="{ThemeResource LayerFillColorAltBrush}">
+                            <StackPanel Spacing="8">
+                                <TextBlock FontSize="16"
+                                           FontWeight="SemiBold"
+                                           Text="Exporter Workflow" />
+                                <TextBlock Opacity="0.78"
+                                           TextWrapping="Wrap"
+                                           Text="Choose an FBX output path for the selected SkeletalMesh and LOD." />
+                                <TextBlock FontWeight="SemiBold"
+                                           Text="FBX Output" />
+                                <StackPanel Orientation="Horizontal"
+                                            Spacing="8">
+                                    <TextBox x:Name="ExportFbxPathBox"
+                                             HorizontalAlignment="Stretch"
+                                             PlaceholderText="Choose an FBX output file..." />
+                                    <Button Content="Browse"
+                                            Click="BrowseExportFbxButton_Click" />
+                                </StackPanel>
+                                <Button HorizontalAlignment="Left"
+                                        Content="Export FBX"
+                                        Click="ExportFbxButton_Click" />
+                                <ListView x:Name="ExporterRowsList"
+                                          ItemsSource="{x:Bind ExporterRows, Mode=OneWay}" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <Grid x:Name="ImporterPanel"
+                          Grid.Row="2"
+                          Visibility="Collapsed">
+                        <Border Padding="12"
+                                CornerRadius="12"
+                                Background="{ThemeResource LayerFillColorAltBrush}">
+                            <StackPanel Spacing="8">
+                                <TextBlock FontSize="16"
+                                           FontWeight="SemiBold"
+                                           Text="Importer Workflow" />
+                                <TextBlock Opacity="0.78"
+                                           TextWrapping="Wrap"
+                                           Text="Choose an FBX source file and the LOD replacement strategy for the selected SkeletalMesh." />
+                                <TextBlock FontWeight="SemiBold"
+                                           Text="FBX Source" />
+                                <StackPanel Orientation="Horizontal"
+                                            Spacing="8">
+                                    <TextBox x:Name="ImportFbxPathBox"
+                                             HorizontalAlignment="Stretch"
+                                             PlaceholderText="Choose an FBX source file..." />
+                                    <Button Content="Browse"
+                                            Click="BrowseImportFbxButton_Click" />
+                                </StackPanel>
+                                <CheckBox x:Name="ReplaceAllLodsCheckBox"
+                                          Content="Replace all LODs"
+                                          Checked="ReplaceAllLodsCheckBox_Changed"
+                                          Unchecked="ReplaceAllLodsCheckBox_Changed"
+                                          IsChecked="False" />
+                                <Button HorizontalAlignment="Left"
+                                        Content="Import Mesh"
+                                        Click="ImportMeshButton_Click" />
+                                <ListView x:Name="ImporterRowsList"
+                                          ItemsSource="{x:Bind ImporterRows, Mode=OneWay}" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <Grid x:Name="SectionsPanel"
+                          Grid.Row="2"
+                          Visibility="Collapsed"
+                          RowSpacing="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <Border Padding="12"
+                                CornerRadius="12"
+                                Background="{ThemeResource LayerFillColorAltBrush}">
+                            <StackPanel Spacing="8">
+                                <TextBlock FontSize="16"
+                                           FontWeight="SemiBold"
+                                           Text="Sections" />
+                                <ListView x:Name="SectionRowsList"
+                                          SelectionChanged="SectionRowsList_SelectionChanged"
+                                          ItemsSource="{x:Bind SectionRows, Mode=OneWay}" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Row="1"
+                                Padding="12"
+                                CornerRadius="12"
+                                Background="{ThemeResource LayerFillColorAltBrush}">
+                            <StackPanel Spacing="8">
+                                <TextBlock FontSize="16"
+                                           FontWeight="SemiBold"
+                                           Text="Chunks" />
+                                <ListView x:Name="ChunkRowsList"
+                                          SelectionChanged="ChunkRowsList_SelectionChanged"
+                                          ItemsSource="{x:Bind ChunkRows, Mode=OneWay}" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Row="2"
+                                Padding="12"
+                                CornerRadius="12"
+                                Background="{ThemeResource LayerFillColorAltBrush}">
+                            <StackPanel Spacing="8">
+                                <TextBlock FontSize="16"
+                                           FontWeight="SemiBold"
+                                           Text="Selection Details" />
+                                <ListView x:Name="SectionDetailRowsList"
+                                          ItemsSource="{x:Bind SectionDetailRows, Mode=OneWay}" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Grid>
+        </Grid>
+    </Grid>
+</Page>
+

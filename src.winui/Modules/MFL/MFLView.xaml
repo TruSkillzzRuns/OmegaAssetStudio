@@ -1,0 +1,264 @@
+﻿<Page
+    x:Name="RootPage"
+    x:Class="OmegaAssetStudio.WinUI.Modules.MFL.MFLView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:OmegaAssetStudio.WinUI.Modules.MFL.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Padding="20" RowDefinitions="Auto,*" ColumnDefinitions="280,*,300">
+        <Grid Grid.Row="0" Grid.ColumnSpan="3" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="12">
+            <TextBlock Text="Mesh Fusion Lab"
+                       FontSize="28"
+                       FontWeight="SemiBold" />
+            <Button Grid.Column="1"
+                    MinHeight="36"
+                    Padding="12,6"
+                    HorizontalAlignment="Right"
+                    Click="WorkflowsButton_Click">
+                <TextBlock Text="Workflows"
+                           TextWrapping="Wrap"
+                           TextAlignment="Center" />
+            </Button>
+            <TextBlock Grid.Row="1"
+                       Grid.ColumnSpan="2"
+                       Text="Load two or more meshes, select a region by bone influence or ray hit, fuse geometry, rebuild mesh data, and export a unified skeletal mesh."
+                       TextWrapping="Wrap"
+                       Opacity="0.85" />
+        </Grid>
+
+        <ScrollViewer Grid.Row="1" Grid.Column="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,12,12,0">
+            <StackPanel Spacing="12">
+                <Border Padding="12" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Workspace" FontSize="18" FontWeight="SemiBold" />
+                        <TextBox Header="Project Name" Text="{Binding ProjectNameText, Mode=TwoWay}" />
+                        <ComboBox Header="Saved Projects"
+                                  ItemsSource="{Binding AvailableProjects}"
+                                  SelectedItem="{Binding SelectedProjectName, Mode=TwoWay}" />
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                            <Button Grid.Column="0" Content="Load Selected Project" Command="{Binding LoadProjectCommand}" />
+                            <Button Grid.Column="1" Content="Refresh" Command="{Binding RefreshProjectsCommand}" />
+                        </Grid>
+                        <TextBox Header="Mesh A UPK path" Text="{Binding MeshAPath, Mode=TwoWay}" />
+                        <ComboBox Header="Mesh A Skeletal Mesh"
+                                  ItemsSource="{Binding MeshAExportOptions}"
+                                  SelectedItem="{Binding SelectedMeshAExportPath, Mode=TwoWay}" />
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                            <Button Grid.Column="0" Content="Browse UPK A" Click="ImportMeshAButton_Click" />
+                            <Button Grid.Column="1" Content="Load Mesh A" Command="{Binding LoadMeshACommand}" />
+                        </Grid>
+                        <TextBox Header="Mesh B UPK path" Text="{Binding MeshBPath, Mode=TwoWay}" />
+                        <ComboBox Header="Mesh B Skeletal Mesh"
+                                  ItemsSource="{Binding MeshBExportOptions}"
+                                  SelectedItem="{Binding SelectedMeshBExportPath, Mode=TwoWay}" />
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                            <Button Grid.Column="0" Content="Browse UPK B" Click="ImportMeshBButton_Click" />
+                            <Button Grid.Column="1" Content="Load Mesh B" Command="{Binding LoadMeshBCommand}" />
+                        </Grid>
+                        <TextBox Header="Additional mesh workspace path" Text="{Binding AdditionalMeshPath, Mode=TwoWay}" />
+                        <TextBlock Text="UPK Selection" FontSize="16" FontWeight="SemiBold" />
+                        <Button Content="Load Demo Pair" Command="{Binding LoadDemoPairCommand}" />
+                        <Button Content="Load Additional Mesh" Command="{Binding LoadAdditionalMeshCommand}" />
+                        <Button Content="Save Project" Command="{Binding SaveProjectCommand}" />
+                        <Button Content="Validate Project" Command="{Binding ValidateProjectCommand}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Padding="12" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Region Selection" FontSize="18" FontWeight="SemiBold" />
+                        <ComboBox Header="Selection Mode" ItemsSource="{Binding AvailableSelectionModes}" SelectedItem="{Binding SelectedSelectionMode, Mode=TwoWay}" />
+                        <TextBox Header="Bone Name" Text="{Binding SelectedBoneName, Mode=TwoWay}" />
+                        <TextBox Header="Section Index" Text="{Binding SelectedSectionText, Mode=TwoWay}" />
+                        <TextBox Header="Ray Origin" Text="{Binding RayOriginText, Mode=TwoWay}" />
+                        <TextBox Header="Ray Direction" Text="{Binding RayDirectionText, Mode=TwoWay}" />
+                        <Button Content="Select Region" Command="{Binding SelectRegionCommand}" />
+                        <Button Content="Extract Region" Command="{Binding ExtractRegionCommand}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Padding="12" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Section Calibration" FontSize="18" FontWeight="SemiBold" />
+                        <TextBlock Text="Use these buttons to build section maps for each mesh before clicking in the viewport." TextWrapping="Wrap" Opacity="0.85" />
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                            <Button Grid.Column="0" Content="Calibrate Mesh A" Command="{Binding CalibrateMeshACommand}" />
+                            <Button Grid.Column="1" Content="Calibrate Mesh B" Command="{Binding CalibrateMeshBCommand}" />
+                        </Grid>
+                        <TextBlock Text="{Binding CalibrationSummaryText}" TextWrapping="Wrap" FontSize="12" Opacity="0.9" />
+                        <ListView ItemsSource="{Binding CalibrationLines}" MinHeight="120">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" TextWrapping="Wrap" FontSize="12" Opacity="0.9" />
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <ScrollViewer Grid.Row="1" Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="12,12,12,0">
+            <StackPanel Spacing="12">
+                <Border Padding="12" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Unified Viewport" FontSize="18" FontWeight="SemiBold" />
+                        <TextBlock Text="Both meshes stay visible together in one shared scene. Click a triangle to select its mesh, or use the controls below to switch the active mesh, visibility, wireframe, or ghost mode."
+                                   TextWrapping="Wrap"
+                                   Opacity="0.85" />
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                            <ComboBox Header="Active Mesh"
+                                      ItemsSource="{Binding AvailableSceneKeys}"
+                                      SelectedItem="{Binding SelectedActiveMeshKey, Mode=TwoWay}" />
+                            <ComboBox Grid.Column="1"
+                                      Header="Preview Focus"
+                                      ItemsSource="{Binding AvailablePreviewFocuses}"
+                                      SelectedItem="{Binding SelectedPreviewFocus, Mode=TwoWay}" />
+                        </Grid>
+                        <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="8">
+                        <CheckBox Content="Mesh A Visible" IsChecked="{Binding Scene.MeshNodeA.IsVisible, Mode=TwoWay}" />
+                        <CheckBox Grid.Column="1" Content="Mesh A Wireframe" IsChecked="{Binding Scene.MeshNodeA.IsWireframe, Mode=TwoWay}" />
+                        <CheckBox Grid.Column="2" Content="Mesh B Visible" IsChecked="{Binding Scene.MeshNodeB.IsVisible, Mode=TwoWay}" />
+                        <CheckBox Grid.Column="3" Content="Mesh B Wireframe" IsChecked="{Binding Scene.MeshNodeB.IsWireframe, Mode=TwoWay}" />
+                    </Grid>
+                    <CheckBox Content="Ghost inactive mesh"
+                              IsChecked="{Binding Scene.GhostInactiveMesh, Mode=TwoWay}" />
+                    <CheckBox Content="Show Ground Plane"
+                              IsChecked="{Binding Scene.ShowGroundPlane, Mode=TwoWay}" />
+                        <Border Padding="12"
+                                CornerRadius="10"
+                                BorderThickness="1"
+                                BorderBrush="#33414D"
+                                Background="#171B27"
+                                HorizontalAlignment="Stretch">
+                            <controls:Viewport3DControl x:Name="MeshViewport"
+                                                        MinHeight="760"
+                                                        Scene="{Binding Scene}"
+                                                        Camera="{Binding Camera}"
+                                                        MeshHitSelected="D3D11SwapChainHost_MeshHitSelected" />
+                        </Border>
+                        <TextBlock Text="{Binding SelectionSummaryText}" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding MeshSummaryText}" TextWrapping="Wrap" Opacity="0.85" />
+                    </StackPanel>
+                </Border>
+
+                <Border Padding="12" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Mesh Summary" FontSize="18" FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding MeshSummaryText}" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+
+                <Border Padding="12" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Selection Preview" FontSize="18" FontWeight="SemiBold" />
+                        <ListView ItemsSource="{Binding SelectionPreviewLines}" MinHeight="120" />
+                    </StackPanel>
+                </Border>
+
+                <Border Padding="12" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Fusion Pipeline" FontSize="18" FontWeight="SemiBold" />
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="8">
+                            <Button Grid.Row="0" Grid.Column="0" Content="Transform Region" Command="{Binding TransformRegionCommand}" />
+                            <Button Grid.Row="0" Grid.Column="1" Content="Merge Region" Command="{Binding MergeRegionCommand}" />
+                            <Button Grid.Row="1" Grid.Column="0" Content="Rebuild Mesh" Command="{Binding RebuildCommand}" />
+                            <Button Grid.Row="1" Grid.Column="1" Content="Fuse All" Command="{Binding FuseCommand}" />
+                        </Grid>
+                        <TextBlock Text="{Binding PipelineSummaryText}" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding RebuildSummaryText}" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <ScrollViewer Grid.Row="1" Grid.Column="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="12,12,0,0">
+            <StackPanel Spacing="12">
+                <Border Padding="12" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Export" FontSize="18" FontWeight="SemiBold" />
+                        <ComboBox Header="Format" ItemsSource="{Binding AvailableExportFormats}" SelectedItem="{Binding SelectedExportFormat, Mode=TwoWay}" />
+                        <TextBox Header="Export workspace path" Text="{Binding ExportPath, Mode=TwoWay}" />
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                            <Button Grid.Column="0" Content="Export Mesh" Command="{Binding ExportCommand}" />
+                            <Button Grid.Column="1" Content="Reset Workspace" Command="{Binding ResetCommand}" />
+                        </Grid>
+                        <TextBlock Text="{Binding ExportSummaryText}" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+
+                <Border Padding="12" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Workspace Status" FontSize="18" FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding WorkspaceText}" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding StatusText}" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+
+                <Border Padding="12" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Viewport Diagnostics" FontSize="18" FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding ViewportDiagnosticsText}" TextWrapping="Wrap" FontSize="12" Opacity="0.9" />
+                    </StackPanel>
+                </Border>
+
+                <Border Padding="12" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Load Diagnostics" FontSize="18" FontWeight="SemiBold" />
+                        <TextBlock Text="Mesh A" FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding MeshALoadStatus}" TextWrapping="Wrap" />
+                        <ListView ItemsSource="{Binding MeshALoadTraceLines}" MinHeight="80">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" TextWrapping="Wrap" FontSize="12" Opacity="0.9" />
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                        <TextBlock Text="Mesh B" FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding MeshBLoadStatus}" TextWrapping="Wrap" />
+                        <ListView ItemsSource="{Binding MeshBLoadTraceLines}" MinHeight="80">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" TextWrapping="Wrap" FontSize="12" Opacity="0.9" />
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </StackPanel>
+                </Border>
+
+                <Border Padding="12" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Validation" FontSize="18" FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding ValidationSummaryText}" TextWrapping="Wrap" />
+                        <ListView ItemsSource="{Binding ValidationLines}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Padding="12" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Validation Snapshot" FontSize="18" FontWeight="SemiBold" />
+                        <TextBlock Text="Mesh health snapshots are computed from the loaded meshes and surface common structural issues." TextWrapping="Wrap" Opacity="0.85" />
+                        <ListView ItemsSource="{Binding ValidationSnapshotLines}">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" TextWrapping="Wrap" />
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </StackPanel>
+                </Border>
+
+                <Border Padding="12" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Log" FontSize="18" FontWeight="SemiBold" />
+                        <ListView ItemsSource="{Binding LogLines}" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>
+

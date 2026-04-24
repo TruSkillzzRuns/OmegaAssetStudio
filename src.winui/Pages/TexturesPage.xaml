@@ -1,0 +1,677 @@
+﻿<Page
+    x:Class="OmegaAssetStudio.WinUI.Pages.TexturesPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Margin="16" RowSpacing="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="220" />
+        </Grid.RowDefinitions>
+
+        <Grid ColumnSpacing="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="420" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="520" />
+            </Grid.ColumnDefinitions>
+
+            <Border Padding="14"
+                    CornerRadius="16"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1">
+                <Grid RowSpacing="12">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="12">
+                        <TextBlock FontSize="28"
+                                   FontWeight="SemiBold"
+                                   Text="Textures 2.0" />
+                        <Button Grid.Column="1"
+                                MinHeight="36"
+                                Padding="12,6"
+                                HorizontalAlignment="Right"
+                                Click="WorkflowsButton_Click">
+                            <TextBlock Text="Workflows"
+                                       TextWrapping="Wrap"
+                                       TextAlignment="Center" />
+                        </Button>
+                        <TextBlock Grid.Row="1"
+                                   Grid.ColumnSpan="2"
+                                   Opacity="0.78"
+                                   TextWrapping="Wrap"
+                                   Text="Fresh WinUI 3 texture workspace for Marvel Heroes Omega. Load disk textures, UPK textures, preview channels, inject, export, and batch process." />
+                    </Grid>
+
+                    <StackPanel Grid.Row="1" Spacing="12">
+                        <StackPanel Spacing="6">
+                        <TextBlock FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Text="Workspace"
+                                   TextWrapping="WrapWholeWords" />
+                            <Grid ColumnSpacing="8"
+                                  RowSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Button x:Name="LoadUpkButton"
+                                        Grid.Row="0"
+                                        Grid.Column="0"
+                                        MinHeight="44"
+                                        HorizontalAlignment="Stretch"
+                                        Click="LoadUpkButton_Click">
+                                    <TextBlock Text="Load UPK"
+                                               TextWrapping="Wrap"
+                                               TextAlignment="Center" />
+                                </Button>
+                                <Button x:Name="LoadFilesButton"
+                                        Grid.Row="0"
+                                        Grid.Column="1"
+                                        MinHeight="44"
+                                        HorizontalAlignment="Stretch"
+                                        Click="LoadFilesButton_Click">
+                                    <TextBlock Text="Load Files"
+                                               TextWrapping="Wrap"
+                                               TextAlignment="Center" />
+                                </Button>
+                            </Grid>
+                        </StackPanel>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock FontSize="18"
+                                       FontWeight="SemiBold"
+                                       Text="Batch Tools"
+                                       TextWrapping="WrapWholeWords" />
+                            <Grid ColumnSpacing="8"
+                                  RowSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Button x:Name="BatchOperationsButton"
+                                        Grid.Row="0"
+                                        Grid.Column="0"
+                                        MinHeight="44"
+                                        HorizontalAlignment="Stretch"
+                                        Click="BatchOperationsButton_Click">
+                                    <TextBlock Text="Batch Operations"
+                                               TextWrapping="Wrap"
+                                               TextAlignment="Center" />
+                                </Button>
+                                <Button x:Name="BatchExportButton"
+                                        Grid.Row="0"
+                                        Grid.Column="1"
+                                        MinHeight="44"
+                                        HorizontalAlignment="Stretch"
+                                        Click="BatchExportButton_Click">
+                                    <TextBlock Text="Batch Export"
+                                               TextWrapping="Wrap"
+                                               TextAlignment="Center" />
+                                </Button>
+                                <Button x:Name="BatchInjectButton"
+                                        Grid.Row="1"
+                                        Grid.ColumnSpan="2"
+                                        MinHeight="44"
+                                        HorizontalAlignment="Stretch"
+                                        Click="BatchInjectButton_Click">
+                                    <TextBlock Text="Batch Inject"
+                                               TextWrapping="Wrap"
+                                               TextAlignment="Center" />
+                                </Button>
+                            </Grid>
+                        </StackPanel>
+
+                        <TextBox x:Name="SearchBox"
+                                 PlaceholderText="Search textures..."
+                                 TextChanged="SearchBox_TextChanged" />
+                        <TextBlock x:Name="CurrentUpkText"
+                                   Opacity="0.72"
+                                   TextWrapping="Wrap"
+                                   Text="No UPK loaded." />
+                    </StackPanel>
+
+                    <Grid Grid.Row="2" RowSpacing="8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Text="Texture List"
+                                   TextWrapping="WrapWholeWords" />
+                        <ListView Grid.Row="1"
+                                  x:Name="TexturesListView"
+                                  HorizontalContentAlignment="Stretch"
+                                  SelectionMode="Single"
+                                  SelectionChanged="TexturesListView_SelectionChanged">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Spacing="2">
+                                        <TextBlock FontWeight="SemiBold"
+                                                   TextWrapping="WrapWholeWords"
+                                                   Text="{Binding DisplayName}" />
+                                        <TextBlock Opacity="0.72"
+                                                   TextWrapping="WrapWholeWords"
+                                                   Text="{Binding SizeText}" />
+                                        <TextBlock Opacity="0.72"
+                                                   TextWrapping="WrapWholeWords"
+                                                   Text="{Binding Format}" />
+                                        <TextBlock Opacity="0.72"
+                                                   TextWrapping="WrapWholeWords"
+                                                   Text="{Binding SourceKind}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="1"
+                    Padding="14"
+                    CornerRadius="16"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1">
+                <Grid RowSpacing="12">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Spacing="6">
+                        <TextBlock x:Name="CurrentTextureTitle"
+                                   FontSize="22"
+                                   FontWeight="SemiBold"
+                                   Text="Preview" />
+                        <TextBlock x:Name="CurrentTextureSummary"
+                                   Opacity="0.78"
+                                   TextWrapping="Wrap"
+                                   Text="Select a texture to inspect it here." />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <ToggleSwitch x:Name="CompareToggle"
+                                          Header="Before / After"
+                                          Toggled="CompareToggle_Toggled" />
+                            <ToggleSwitch x:Name="AlphaToggle"
+                                          Header="Alpha"
+                                          Toggled="AlphaToggle_Toggled" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <Grid Grid.Row="1"
+                          x:Name="PreviewHost"
+                          Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                          BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                          BorderThickness="1"
+                          AllowDrop="True"
+                          DragOver="PreviewHost_DragOver"
+                          Drop="PreviewHost_Drop"
+                          PointerPressed="PreviewHost_PointerPressed"
+                          PointerMoved="PreviewHost_PointerMoved"
+                          PointerReleased="PreviewHost_PointerReleased"
+                          PointerWheelChanged="PreviewHost_PointerWheelChanged"
+                          SizeChanged="PreviewHost_SizeChanged">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <Grid x:Name="PreviewComparisonGrid"
+                              ColumnSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border x:Name="PreviousPreviewBorder"
+                                    CornerRadius="10"
+                                    Padding="8"
+                                    Margin="8"
+                                    Background="#22000000"
+                                    Visibility="Collapsed">
+                                <Image x:Name="PreviousPreviewImage"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Stretch="None">
+                                    <Image.RenderTransform>
+                                        <TranslateTransform x:Name="PreviousPreviewTranslate" />
+                                    </Image.RenderTransform>
+                                </Image>
+                            </Border>
+
+                            <Border x:Name="CurrentPreviewBorder"
+                                    Grid.Column="0"
+                                    Grid.ColumnSpan="2"
+                                    CornerRadius="10"
+                                    Padding="8"
+                                    Margin="8"
+                                    Background="#22000000">
+                                <Image x:Name="CurrentPreviewImage"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Stretch="None">
+                                    <Image.RenderTransform>
+                                        <TranslateTransform x:Name="CurrentPreviewTranslate" />
+                                    </Image.RenderTransform>
+                                </Image>
+                            </Border>
+                        </Grid>
+
+                        <StackPanel Grid.Row="1"
+                                    Orientation="Horizontal"
+                                    HorizontalAlignment="Stretch"
+                                    VerticalAlignment="Bottom"
+                                    Margin="8"
+                                    Spacing="12">
+                            <StackPanel Width="240">
+                                <TextBlock Text="Zoom" />
+                                <Slider x:Name="ZoomSlider"
+                                        Minimum="0.25"
+                                        Maximum="6"
+                                        Value="1"
+                                        ValueChanged="ZoomSlider_ValueChanged" />
+                            </StackPanel>
+                            <StackPanel Width="240">
+                                <TextBlock Text="Mip Level" />
+                                <Slider x:Name="MipSlider"
+                                        Minimum="0"
+                                        Maximum="0"
+                                        Value="0"
+                                        IsEnabled="False"
+                                        ValueChanged="MipSlider_ValueChanged" />
+                            </StackPanel>
+                            <StackPanel Width="220">
+                                <TextBlock Text="Preview Channel" />
+                                <ComboBox x:Name="PreviewChannelComboBox"
+                                          SelectionChanged="PreviewChannelComboBox_SelectionChanged" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+
+                    <TextBlock Grid.Row="2"
+                               x:Name="PreviewStatusText"
+                               Opacity="0.78"
+                               Text="Ready." />
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="2"
+                    Padding="14"
+                    CornerRadius="16"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1">
+                <ScrollViewer>
+                    <StackPanel Spacing="12">
+                        <TextBlock FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Text="Actions and Metadata"
+                                   TextWrapping="WrapWholeWords" />
+
+                        <StackPanel Spacing="6">
+                            <TextBlock FontSize="18"
+                                       FontWeight="SemiBold"
+                                       Text="Inspect"
+                                       TextWrapping="WrapWholeWords" />
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="Texture Type" />
+                                <ComboBox x:Name="TextureTypeComboBox"
+                                          SelectionChanged="TextureTypeComboBox_SelectionChanged" />
+                            </StackPanel>
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="Upscale Method" />
+                                <ComboBox x:Name="UpscaleProviderComboBox"
+                                          SelectionChanged="UpscaleProviderComboBox_SelectionChanged" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock FontSize="18"
+                                       FontWeight="SemiBold"
+                                       Text="Details"
+                                       TextWrapping="WrapWholeWords" />
+                            <TextBlock Text="Loaded Texture Details" />
+                            <ListView x:Name="DetailRowsListView"
+                                      ItemsSource="{Binding DetailRows}"
+                                      HorizontalContentAlignment="Stretch"
+                                      MinHeight="180">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock TextWrapping="WrapWholeWords"
+                                                   Text="{Binding}" />
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock FontSize="18"
+                                       FontWeight="SemiBold"
+                                       Text="Cache"
+                                       TextWrapping="WrapWholeWords" />
+                            <TextBlock Text="Cache Browser" />
+                            <ListView x:Name="CacheRowsListView"
+                                      ItemsSource="{Binding CacheRows}"
+                                      HorizontalContentAlignment="Stretch"
+                                      MinHeight="140">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock TextWrapping="WrapWholeWords"
+                                                   Text="{Binding}" />
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                            <Grid ColumnSpacing="8"
+                                  RowSpacing="8"
+                                  Margin="0,4,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Button x:Name="ExtractCacheButton"
+                                        Grid.Row="0"
+                                        Grid.Column="0"
+                                        MinHeight="52"
+                                        Click="ExtractCacheButton_Click">
+                                    <TextBlock Text="Extract Cache"
+                                               TextWrapping="Wrap"
+                                               TextAlignment="Center" />
+                                </Button>
+                                <Button x:Name="RebuildCacheButton"
+                                        Grid.Row="0"
+                                        Grid.Column="1"
+                                        MinHeight="52"
+                                        Click="RebuildCacheButton_Click">
+                                    <TextBlock Text="Rebuild Cache"
+                                               TextWrapping="Wrap"
+                                               TextAlignment="Center" />
+                                </Button>
+                                <Button x:Name="DefragCacheButton"
+                                        Grid.Row="1"
+                                        Grid.ColumnSpan="2"
+                                        MinHeight="52"
+                                        Click="DefragCacheButton_Click">
+                                    <TextBlock Text="Defrag Cache"
+                                               TextWrapping="Wrap"
+                                               TextAlignment="Center" />
+                                </Button>
+                            </Grid>
+                        </StackPanel>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock FontSize="18"
+                                       FontWeight="SemiBold"
+                                       Text="History"
+                                       TextWrapping="WrapWholeWords" />
+                            <TextBlock Text="History" />
+                            <ListView x:Name="HistoryRowsListView"
+                                      ItemsSource="{Binding HistoryRows}"
+                                      HorizontalContentAlignment="Stretch"
+                                      MinHeight="120">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock TextWrapping="WrapWholeWords"
+                                                   Text="{Binding}" />
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock FontSize="18"
+                                       FontWeight="SemiBold"
+                                       Text="Actions"
+                                       TextWrapping="WrapWholeWords" />
+                            <Grid ColumnSpacing="8"
+                                  RowSpacing="8"
+                                  HorizontalAlignment="Stretch">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Button x:Name="LoadManifestButton"
+                                    Grid.Row="0"
+                                    Grid.Column="0"
+                                    MinHeight="52"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"
+                                    Click="LoadManifestButton_Click">
+                                <TextBlock Text="Load Manifest"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button x:Name="ReloadManifestButton"
+                                    Grid.Row="0"
+                                    Grid.Column="1"
+                                    MinHeight="52"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"
+                                    Click="ReloadManifestButton_Click">
+                                <TextBlock Text="Reload Manifest"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button x:Name="SaveManifestButton"
+                                    Grid.Row="1"
+                                    Grid.Column="0"
+                                    MinHeight="52"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"
+                                    Click="SaveManifestButton_Click">
+                                <TextBlock Text="Save Manifest"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button x:Name="ReloadCacheButton"
+                                    Grid.Row="1"
+                                    Grid.Column="1"
+                                    MinHeight="52"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"
+                                    Click="ReloadCacheButton_Click">
+                                <TextBlock Text="Reload Cache"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button x:Name="ValidateInjectButton"
+                                    Grid.Row="2"
+                                    Grid.Column="0"
+                                    MinHeight="52"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"
+                                    Click="ValidateInjectButton_Click">
+                                <TextBlock Text="Validate Inject"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button x:Name="ExportButton"
+                                    Grid.Row="2"
+                                    Grid.Column="1"
+                                    MinHeight="52"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"
+                                    Click="ExportButton_Click">
+                                <TextBlock Text="Export"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button x:Name="ReplaceButton"
+                                    Grid.Row="3"
+                                    Grid.Column="0"
+                                    MinHeight="52"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"
+                                    Click="ReplaceButton_Click">
+                                <TextBlock Text="Import / Replace"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button x:Name="ApplyReplacementButton"
+                                    Grid.Row="3"
+                                    Grid.Column="1"
+                                    MinHeight="52"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"
+                                    Click="ApplyReplacementButton_Click">
+                                <TextBlock Text="Apply Pending"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button x:Name="ReplaceInlineMipButton"
+                                    Grid.Row="4"
+                                    Grid.Column="0"
+                                    MinHeight="52"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"
+                                    Click="ReplaceInlineMipButton_Click">
+                                <TextBlock Text="Replace Inline Mip"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button x:Name="InjectButton"
+                                    Grid.Row="4"
+                                    Grid.Column="1"
+                                    MinHeight="52"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"
+                                    Click="InjectButton_Click">
+                                <TextBlock Text="Inject"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button x:Name="UpscaleButton"
+                                    Grid.Row="5"
+                                    Grid.Column="0"
+                                    MinHeight="52"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"
+                                    Click="UpscaleButton_Click">
+                                <TextBlock Text="Upscale to 4K"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button x:Name="RegenButton"
+                                    Grid.Row="5"
+                                    Grid.Column="1"
+                                    MinHeight="52"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"
+                                    Click="RegenButton_Click">
+                                <TextBlock Text="Regenerate Mips"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button x:Name="UndoButton"
+                                    Grid.Row="6"
+                                    Grid.Column="0"
+                                    MinWidth="92"
+                                    MinHeight="52"
+                                    Padding="10,8"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"
+                                    Click="UndoButton_Click">
+                                <TextBlock Text="Undo"
+                                           FontSize="14"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button x:Name="RedoButton"
+                                    Grid.Row="6"
+                                    Grid.Column="2"
+                                    MinWidth="92"
+                                    MinHeight="52"
+                                    Padding="10,8"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"
+                                    Click="RedoButton_Click">
+                                <TextBlock Text="Redo"
+                                           FontSize="14"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button x:Name="ResetButton"
+                                    Grid.Row="6"
+                                    Grid.Column="1"
+                                    MinWidth="92"
+                                    MinHeight="52"
+                                    Padding="10,8"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"
+                                    Click="ResetButton_Click">
+                                <TextBlock Text="Reset"
+                                           FontSize="14"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            </Grid>
+                        </StackPanel>
+
+                        <TextBlock x:Name="ActionStatusText"
+                                   Opacity="0.78"
+                                   TextWrapping="Wrap"
+                                   Text="Load a UPK or drag in a texture to begin." />
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <Border Grid.Row="1"
+                Padding="12"
+                CornerRadius="16"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1">
+            <Grid RowSpacing="8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <TextBlock FontSize="18"
+                           FontWeight="SemiBold"
+                           Text="Log" />
+                <ListView Grid.Row="1"
+                          x:Name="LogListView"
+                          ItemsSource="{Binding LogEntries}"
+                          HorizontalContentAlignment="Stretch">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock TextWrapping="WrapWholeWords"
+                                       Text="{Binding}" />
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Grid>
+        </Border>
+    </Grid>
+</Page>
+

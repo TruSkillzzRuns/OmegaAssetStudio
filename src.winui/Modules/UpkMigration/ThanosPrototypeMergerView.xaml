@@ -1,0 +1,171 @@
+﻿<UserControl
+    x:Class="OmegaAssetStudio.WinUI.Modules.UpkMigration.ThanosPrototypeMergerView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Padding="20" RowDefinitions="Auto,*">
+        <StackPanel Grid.Row="0" Spacing="8">
+            <TextBlock Text="Prototype Merger"
+                       FontSize="28"
+                       FontWeight="SemiBold" />
+            <TextBlock Text="Load a dependency report, discover missing prototypes in the 1.48 client, build target 1.52 merge plans, and write updated packages."
+                       TextWrapping="Wrap"
+                       Opacity="0.85" />
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+            <Grid ColumnDefinitions="420,*,420" ColumnSpacing="12" Padding="0,12,0,0" MinWidth="1280">
+                <StackPanel Spacing="12">
+                    <Border Padding="12" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                            <StackPanel Spacing="10">
+                                <TextBlock Text="Workspace" FontSize="18" FontWeight="SemiBold" />
+                            <Button Content="Load Report or Scan Source UPK" Command="{Binding LoadReportCommand}" />
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Border Width="22" Height="22" CornerRadius="11" Background="#FF2D7DFF">
+                                    <TextBlock Text="1" Foreground="White" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBlock Text="Select 1.52 client root first" VerticalAlignment="Center" />
+                            </StackPanel>
+                            <TextBox Header="1.52 client root"
+                                     Text="{Binding Client152Root, Mode=TwoWay}"
+                                     PlaceholderText="Select the 1.52 client content root." />
+                            <Button Content="Browse 1.52 Root" Command="{Binding BrowseClient152RootCommand}" />
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Border Width="22" Height="22" CornerRadius="11" Background="#FF00A36C">
+                                    <TextBlock Text="2" Foreground="White" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBlock Text="Load report or scan source UPK" VerticalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Border Width="22" Height="22" CornerRadius="11" Background="#FFFF9A1F">
+                                    <TextBlock Text="3" Foreground="White" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBlock Text="Select 1.48 client root" VerticalAlignment="Center" />
+                            </StackPanel>
+                            <TextBox Header="1.48 client root"
+                                     Text="{Binding Client148Root, Mode=TwoWay}"
+                                     PlaceholderText="Select the 1.48 client content root." />
+                            <Button Content="Browse 1.48 Root" Command="{Binding BrowseClient148RootCommand}" />
+                            <TextBlock Text="{Binding StatusText}" TextWrapping="Wrap" />
+                            <ProgressRing IsActive="{Binding IsBusy}" Width="32" Height="32" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Padding="12" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                            <StackPanel Spacing="10">
+                            <TextBlock Text="Report" FontSize="18" FontWeight="SemiBold" />
+                            <TextBlock Text="{Binding SelectedReport.FilePath}" TextWrapping="WrapWholeWords" Opacity="0.85" />
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock Text="Missing dependencies:" />
+                                <TextBlock Text="{Binding SelectedReport.MissingDependencyCount}" />
+                            </StackPanel>
+                            <TextBlock Text="{Binding SelectedReport.Summary}" TextWrapping="WrapWholeWords" Opacity="0.85" />
+                            <TextBlock Text="Source UPK loads now run a real dependency scan against the selected 1.52 client root."
+                                       TextWrapping="WrapWholeWords"
+                                       Opacity="0.75" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Spacing="12">
+                    <Border Padding="12" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="Discovery" FontSize="18" FontWeight="SemiBold" />
+                            <Button Content="Discover Prototypes in 1.48" Command="{Binding DiscoverPrototypesCommand}" />
+                            <CheckBox Content="Show raid-relevant items only"
+                                      IsChecked="{Binding ShowOnlyRaidRelevant, Mode=TwoWay}" />
+                            <ProgressBar Minimum="0"
+                                         Maximum="{Binding DiscoveryProgressMaximum}"
+                                         Value="{Binding DiscoveryProgressValue}"
+                                         Height="8" />
+                            <TextBlock Text="{Binding DiscoveryStatus}" TextWrapping="WrapWholeWords" Opacity="0.85" />
+                            <TextBlock Text="{Binding DiscoveryCurrentFile}" TextWrapping="WrapWholeWords" FontSize="12" Opacity="0.75" />
+                            <Grid ColumnDefinitions="2*,2*,2*,2*" ColumnSpacing="8">
+                                <TextBlock Text="Dependency" FontWeight="SemiBold" />
+                                <TextBlock Grid.Column="1" Text="Source UPK" FontWeight="SemiBold" />
+                                <TextBlock Grid.Column="2" Text="Class" FontWeight="SemiBold" />
+                                <TextBlock Grid.Column="3" Text="Object" FontWeight="SemiBold" />
+                            </Grid>
+                            <ListView ItemsSource="{Binding DiscoveredPrototypes}" MinHeight="240">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Margin="0,0,0,8" Padding="8" CornerRadius="8" Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}">
+                                            <StackPanel Spacing="4">
+                                                <TextBlock Text="{Binding Dependency.Name}" FontWeight="SemiBold" TextWrapping="WrapWholeWords" />
+                                                <TextBlock Text="{Binding Dependency.ObjectPath}" FontSize="12" Opacity="0.8" TextWrapping="WrapWholeWords" />
+                                                <TextBlock Text="{Binding Dependency.ReferenceKind}" FontSize="12" Opacity="0.75" TextWrapping="WrapWholeWords" />
+                                                <TextBlock Text="{Binding SourceUpkPath}" TextWrapping="WrapWholeWords" Opacity="0.85" />
+                                                <TextBlock Text="{Binding ExportClassName}" TextWrapping="WrapWholeWords" Opacity="0.85" />
+                                                <TextBlock Text="{Binding ExportObjectName}" TextWrapping="WrapWholeWords" Opacity="0.85" />
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    <TextBlock Text="Confidence:" FontSize="12" Opacity="0.75" />
+                                                    <TextBlock Text="{Binding MatchScore}" FontSize="12" Opacity="0.75" />
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding MatchReason}" FontSize="12" Opacity="0.75" TextWrapping="WrapWholeWords" />
+                                                <TextBlock Text="{Binding RaidReason}" FontSize="12" Opacity="0.75" TextWrapping="WrapWholeWords" />
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Padding="12" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="Merge Plans" FontSize="18" FontWeight="SemiBold" />
+                            <Button Content="Build Merge Plans" Command="{Binding BuildMergePlansCommand}" />
+                            <Grid ColumnDefinitions="3*,Auto,2*" ColumnSpacing="8">
+                                <TextBlock Text="Target UPK" FontWeight="SemiBold" />
+                                <TextBlock Grid.Column="1" Text="Count" FontWeight="SemiBold" />
+                                <TextBlock Grid.Column="2" Text="Notes" FontWeight="SemiBold" />
+                            </Grid>
+                            <ListView ItemsSource="{Binding MergePlans}" MinHeight="220">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Margin="0,0,0,8" Padding="8" CornerRadius="8" Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}">
+                                            <StackPanel Spacing="4">
+                                                <TextBlock Text="{Binding TargetUpkPath}" FontWeight="SemiBold" TextWrapping="WrapWholeWords" />
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    <TextBlock Text="Prototype count:" />
+                                                    <TextBlock Text="{Binding SourcePrototypes.Count}" />
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding Notes}" TextWrapping="WrapWholeWords" Opacity="0.85" />
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Spacing="12">
+                    <Border Padding="12" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="Execution" FontSize="18" FontWeight="SemiBold" />
+                            <Button Content="Run Merge" Command="{Binding RunMergeCommand}" />
+                            <TextBlock Text="Merge steps" FontWeight="SemiBold" />
+                            <ListView ItemsSource="{Binding MergeSteps}" MinHeight="280">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Spacing="2" Padding="0,6">
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                            <TextBlock Text="{Binding Description}" TextWrapping="Wrap" />
+                                            <TextBlock Text="{Binding Status}" FontSize="12" Opacity="0.75" />
+                                            <TextBlock Text="{Binding Reason}" FontSize="12" Opacity="0.75" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</UserControl>
+

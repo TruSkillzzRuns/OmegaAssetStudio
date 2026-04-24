@@ -1,0 +1,971 @@
+﻿<Page
+    x:Class="OmegaAssetStudio.WinUI.Pages.RetargetPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Margin="16">
+        <Grid.Background>
+            <ImageBrush ImageSource="ms-appx:///Assets/RetargetBackground.png"
+                        Stretch="UniformToFill"
+                        AlignmentX="Center"
+                        AlignmentY="Center"
+                        Opacity="0.22" />
+        </Grid.Background>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="640" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Border Background="{ThemeResource OmegaAssetStudio.PageBackgroundBrush}"
+                Grid.RowSpan="3"
+                Grid.ColumnSpan="2" />
+
+        <Grid Grid.Row="0"
+              Grid.ColumnSpan="2"
+              ColumnDefinitions="*,Auto"
+              ColumnSpacing="12">
+            <TextBlock FontSize="28"
+                       FontWeight="SemiBold"
+                       Text="SkeletalMesh Retargeter" />
+            <Button Grid.Column="1"
+                    MinHeight="36"
+                    Padding="12,6"
+                    HorizontalAlignment="Right"
+                    Click="WorkflowsButton_Click">
+                <TextBlock Text="Workflows"
+                           TextWrapping="Wrap"
+                           TextAlignment="Center" />
+            </Button>
+        </Grid>
+
+        <TextBlock Grid.Row="1"
+                   Grid.ColumnSpan="2"
+                   Margin="0,8,0,12"
+                   Opacity="0.78"
+                   TextWrapping="Wrap"
+                   Text="Load a UPK, inspect its SkeletalMesh exports and LODs, and prepare the target side of the retarget workflow." />
+
+        <Border Grid.Row="2"
+                Grid.Column="0"
+                Padding="16"
+                Margin="0,0,12,0"
+                CornerRadius="16"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1">
+            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Auto">
+                <Grid RowDefinitions="Auto,*,Auto">
+                    <StackPanel Spacing="8">
+                        <TextBlock x:Name="RetargetTitleText"
+                                   FontSize="22"
+                                   FontWeight="SemiBold"
+                                   Text="No UPK loaded yet." />
+                        <TextBlock x:Name="RetargetStatusText"
+                                   Opacity="0.78"
+                                   TextWrapping="Wrap"
+                                   Text="Browse a UPK to inspect SkeletalMesh exports." />
+                    </StackPanel>
+
+                    <ListView Grid.Row="1"
+                              x:Name="ExportListView"
+                              Margin="0,12,0,12"
+                              SelectionChanged="ExportListView_SelectionChanged">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Spacing="4" Margin="0,4">
+                                    <TextBlock Text="{Binding DisplayName}"
+                                               FontSize="16"
+                                               FontWeight="SemiBold"
+                                               TextWrapping="Wrap" />
+                                    <TextBlock Text="{Binding PathName}"
+                                               Opacity="0.72"
+                                               TextWrapping="Wrap" />
+                                    <TextBlock Text="{Binding MeshSummary}"
+                                               Opacity="0.72"
+                                               TextWrapping="Wrap" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+
+                    <TextBlock Grid.Row="2"
+                               x:Name="RetargetSummaryText"
+                               TextWrapping="Wrap"
+                               Opacity="0.82"
+                               Text="Retarget inspection details will appear here once a SkeletalMesh export is selected." />
+                </Grid>
+            </ScrollViewer>
+        </Border>
+
+        <ScrollViewer Grid.Row="2"
+                      Grid.Column="1"
+                      VerticalScrollBarVisibility="Auto">
+            <Grid ColumnSpacing="12" RowSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.15*" />
+                    <ColumnDefinition Width="0.85*" />
+                </Grid.ColumnDefinitions>
+
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0"
+                        Grid.ColumnSpan="2"
+                        Padding="16"
+                        CornerRadius="16"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1">
+                    <StackPanel Spacing="8">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock FontSize="20"
+                                       FontWeight="SemiBold"
+                                       Text="Pose Preview" />
+                            <TextBlock x:Name="RetargetPreviewStatsText"
+                                       Grid.Column="1"
+                                       VerticalAlignment="Bottom"
+                                       Opacity="0.78"
+                                       Text="Idle" />
+                        </Grid>
+                        <TextBlock x:Name="RetargetPreviewStatusText"
+                                   TextWrapping="Wrap"
+                                   Opacity="0.78"
+                                   Text="Pose preview will appear here once a source mesh or retarget mesh is loaded." />
+                        <Border x:Name="RetargetPreviewViewportHost"
+                                Height="300"
+                                CornerRadius="14"
+                                Background="{ThemeResource OmegaAssetStudio.PanelSecondaryBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1"
+                                PointerPressed="RetargetPreviewViewportHost_PointerPressed"
+                                PointerMoved="RetargetPreviewViewportHost_PointerMoved"
+                                PointerReleased="RetargetPreviewViewportHost_PointerReleased"
+                                PointerWheelChanged="RetargetPreviewViewportHost_PointerWheelChanged">
+                            <Grid>
+                                <SwapChainPanel x:Name="RetargetPreviewSwapChainPanel"
+                                                HorizontalAlignment="Stretch"
+                                                VerticalAlignment="Stretch"
+                                                IsHitTestVisible="False"
+                                                Loaded="RetargetPreviewSurface_Loaded"
+                                                SizeChanged="RetargetPreviewSurface_SizeChanged"
+                                                Visibility="Collapsed" />
+                                <Image x:Name="RetargetPreviewImage"
+                                       HorizontalAlignment="Stretch"
+                                       VerticalAlignment="Stretch"
+                                       IsHitTestVisible="False"
+                                       Stretch="Uniform"
+                                       Visibility="Collapsed" />
+                            </Grid>
+                        </Border>
+                        <StackPanel Orientation="Horizontal"
+                                    HorizontalAlignment="Right"
+                                    Spacing="8">
+                            <Button Content="Reset Preview"
+                                    Click="ResetPosePreviewButton_Click" />
+                            <Button Content="Reset Camera"
+                                    Click="ResetRetargetPreviewCameraButton_Click" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="1"
+                        Grid.Column="0"
+                        Padding="16"
+                        CornerRadius="16"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1">
+                    <StackPanel Spacing="8">
+                        <TextBlock FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Text="Retarget Status" />
+                        <TextBlock x:Name="OperationStatusText"
+                                   TextWrapping="Wrap"
+                                   Opacity="0.78"
+                                   Text="Ready." />
+                        <ProgressBar x:Name="OperationProgressBar"
+                                     Minimum="0"
+                                     Maximum="100"
+                                     Value="0"
+                                     Height="8" />
+                        <TextBlock x:Name="RetargetContextText"
+                                   TextWrapping="Wrap"
+                                   Opacity="0.78"
+                                   Text="Source: none | Player Skeleton: none | AnimSet: none | Pose: BindPose" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="1"
+                        Grid.Column="1"
+                        Padding="16"
+                        CornerRadius="16"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1">
+                    <StackPanel Spacing="8">
+                        <TextBlock FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Text="Target UPK" />
+                        <TextBlock x:Name="UpkStatusText"
+                                   TextWrapping="Wrap"
+                                   Opacity="0.78"
+                                   Text="No UPK selected." />
+                        <TextBlock x:Name="TargetMeshStatusText"
+                                   TextWrapping="Wrap"
+                                   Opacity="0.78"
+                                   Text="Selected SkeletalMesh export will appear here once the UPK is loaded." />
+                        <TextBox x:Name="UpkPathTextBox"
+                                 Header="UPK Path"
+                                 PlaceholderText="Select a UPK to inspect..." />
+                        <Grid ColumnSpacing="8"
+                              RowSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Button Grid.Row="0"
+                                    Grid.Column="0"
+                                    Content="Browse UPK"
+                                    Click="BrowseUpkButton_Click" />
+                            <Button Grid.Row="0"
+                                    Grid.Column="1"
+                                    Content="Load Selected UPK"
+                                    Click="LoadSelectedUpkButton_Click" />
+                            <Button Grid.Row="1"
+                                    Grid.ColumnSpan="2"
+                                    Content="Use Current UPK"
+                                    Click="UseCurrentUpkButton_Click" />
+                        </Grid>
+                        <ComboBox x:Name="LodComboBox"
+                                  Header="LOD Selection"
+                                  SelectionChanged="LodComboBox_SelectionChanged" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="2"
+                        Grid.Column="0"
+                        Padding="16"
+                        CornerRadius="16"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1">
+                    <StackPanel Spacing="8">
+                        <TextBlock FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Text="Bone Mapping" />
+                        <TextBlock x:Name="MappingStatusText"
+                                   TextWrapping="Wrap"
+                                   Opacity="0.78"
+                                   Text="Run Auto Map Bones to inspect the source-to-target bone mapping." />
+                        <ListView x:Name="MappingListView"
+                                  Height="240">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Spacing="2" Margin="0,4">
+                                        <TextBlock Text="{Binding Name}"
+                                                   FontWeight="SemiBold"
+                                                   TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding Value}"
+                                                   Opacity="0.78"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="2"
+                        Grid.Column="1"
+                        Padding="16"
+                        CornerRadius="16"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1">
+                    <StackPanel Spacing="8">
+                        <TextBlock FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Text="Transform Solver" />
+                        <TextBlock x:Name="TransformSolverStatusText"
+                                   TextWrapping="Wrap"
+                                   Opacity="0.78"
+                                   Text="Run Stabilize Transforms to clean unstable matrices before transfer and export." />
+                        <ListView x:Name="TransformSolverListView"
+                                  Height="160">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Spacing="2" Margin="0,4">
+                                        <TextBlock Text="{Binding Name}"
+                                                   FontWeight="SemiBold"
+                                                   TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding Value}"
+                                                   Opacity="0.78"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="3"
+                        Grid.ColumnSpan="2"
+                        Padding="16"
+                        CornerRadius="16"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1">
+                    <StackPanel Spacing="8">
+                        <TextBlock FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Text="Source Mesh" />
+                        <TextBlock x:Name="SourceMeshStatusText"
+                                   TextWrapping="Wrap"
+                                   Opacity="0.78"
+                                   Text="Import the mesh you want to retarget from (.fbx or .psk)." />
+                        <TextBlock x:Name="SourceMeshSummaryText"
+                                   TextWrapping="Wrap"
+                                   Opacity="0.78"
+                                   Text="No source mesh loaded." />
+                        <StackPanel Orientation="Horizontal"
+                                    Spacing="8">
+                            <Button Content="Import Source Mesh"
+                                    Click="ImportSourceMeshButton_Click" />
+                            <Button Content="Reset Source"
+                                    Click="ResetSourceButton_Click" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="4"
+                        Grid.Column="0"
+                        Padding="16"
+                        CornerRadius="16"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1">
+                    <StackPanel Spacing="8">
+                        <TextBlock FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Text="Pose Preview" />
+                        <TextBlock x:Name="PosePreviewStatusText"
+                                   TextWrapping="Wrap"
+                                   Opacity="0.78"
+                                   Text="Pose preview is ready after weight transfer or one-click bind." />
+                        <ComboBox x:Name="PosePresetComboBox"
+                                  SelectionChanged="PosePresetComboBox_SelectionChanged">
+                            <ComboBoxItem Content="BindPose" IsSelected="True" />
+                            <ComboBoxItem Content="APose" />
+                            <ComboBoxItem Content="TPose" />
+                            <ComboBoxItem Content="ArmsUp" />
+                            <ComboBoxItem Content="LegStep" />
+                            <ComboBoxItem Content="TwistCheck" />
+                        </ComboBox>
+                        <StackPanel Orientation="Horizontal"
+                                    Spacing="8">
+                            <Button Content="Apply Pose Preview"
+                                    Click="ApplyPosePreviewButton_Click" />
+                            <Button Content="Reset Pose Preview"
+                                    Click="ResetPosePreviewButton_Click" />
+                        </StackPanel>
+                        <Button Content="Open Animation Preview Window"
+                                Click="OpenAnimationPreviewWindowButton_Click" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="4"
+                        Grid.Column="1"
+                        Padding="16"
+                        CornerRadius="16"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1">
+                    <StackPanel Spacing="8">
+                        <TextBlock FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Text="Source Assets" />
+                        <TextBlock TextWrapping="Wrap"
+                                   Opacity="0.78"
+                                   Text="Import Source Mesh is required. Import Target Skeleton is useful when the source mesh came from a different rig. Import AnimSet and Import Textures are optional support assets." />
+                        <TextBlock x:Name="SkeletonStatusText"
+                                   TextWrapping="Wrap"
+                                   Opacity="0.78"
+                                   Text="No player skeleton imported." />
+                        <TextBox x:Name="SkeletonPathTextBox"
+                                 Header="Player Skeleton FBX"
+                                 PlaceholderText="Optional player skeleton import..." />
+                        <Grid ColumnSpacing="8"
+                              RowSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Button Grid.Row="0"
+                                    Grid.Column="0"
+                                    MinHeight="44"
+                                    Click="ImportSkeletonButton_Click">
+                                <TextBlock Text="Import Target Skeleton"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button Grid.Row="0"
+                                    Grid.Column="1"
+                                    MinHeight="44"
+                                    Click="ImportAnimSetButton_Click">
+                                <TextBlock Text="Import AnimSet"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button Grid.Row="1"
+                                    Grid.ColumnSpan="2"
+                                    MinHeight="44"
+                                    Click="ImportTexturesButton_Click">
+                                <TextBlock Text="Import Textures"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                        </Grid>
+                        <TextBlock x:Name="AnimSetStatusText"
+                                   TextWrapping="Wrap"
+                                   Opacity="0.78"
+                                   Text="No AnimSet imported." />
+                        <TextBlock x:Name="TexturesStatusText"
+                                   TextWrapping="Wrap"
+                                   Opacity="0.78"
+                                   Text="No textures imported." />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="5"
+                        Grid.Column="0"
+                        Padding="16"
+                        CornerRadius="16"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1">
+                    <StackPanel Spacing="8">
+                        <TextBlock FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Text="Mirror Fix" />
+                        <TextBlock x:Name="MirrorFixStatusText"
+                                   TextWrapping="Wrap"
+                                   Opacity="0.78"
+                                   Text="Run Auto Fix Mirroring when the source mesh appears flipped or backfacing." />
+                        <ListView x:Name="MirrorFixListView"
+                                  Height="160">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Spacing="2" Margin="0,4">
+                                        <TextBlock Text="{Binding Name}"
+                                                   FontWeight="SemiBold"
+                                                   TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding Value}"
+                                                   Opacity="0.78"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="5"
+                        Grid.Column="1"
+                        Padding="16"
+                        CornerRadius="16"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1">
+                    <StackPanel Spacing="8">
+                        <TextBlock FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Text="Retarget Steps" />
+                        <TextBlock x:Name="WorkflowStatusText"
+                                   TextWrapping="Wrap"
+                                   Opacity="0.78"
+                                   Text="Import a source mesh, then run map/scale/transfer." />
+                        <Grid ColumnSpacing="8"
+                              RowSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Button Grid.Row="0"
+                                    Grid.Column="0"
+                                    MinHeight="44"
+                                    Click="AutoMapBonesButton_Click">
+                                <TextBlock Text="Auto Bone Mapping"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button Grid.Row="0"
+                                    Grid.Column="1"
+                                    MinHeight="44"
+                                    Click="AutoOrientButton_Click">
+                                <TextBlock Text="Auto Orient To Target"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button Grid.Row="1"
+                                    Grid.Column="0"
+                                    MinHeight="44"
+                                    Click="AutoAlignPoseButton_Click">
+                                <TextBlock Text="Auto Align Pose"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button Grid.Row="1"
+                                    Grid.Column="1"
+                                    MinHeight="44"
+                                    Click="AutoScaleButton_Click">
+                                <TextBlock Text="Auto Scale To Target"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button Grid.Row="2"
+                                    Grid.Column="0"
+                                    MinHeight="44"
+                                    Click="TransferWeightsButton_Click">
+                                <TextBlock Text="Apply Weight Transfer"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button Grid.Row="2"
+                                    Grid.Column="1"
+                                    MinHeight="44"
+                                    Click="OneClickRetargetButton_Click">
+                                <TextBlock Text="One-Click Bind To Skeleton"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button Grid.Row="3"
+                                    Grid.ColumnSpan="2"
+                                    MinHeight="44"
+                                    Click="AutoFixMirrorButton_Click">
+                                <TextBlock Text="Auto Fix Mirroring"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button Grid.Row="4"
+                                    Grid.ColumnSpan="2"
+                                    MinHeight="44"
+                                    Click="SolveTransformsButton_Click">
+                                <TextBlock Text="Stabilize Transforms"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button Grid.Row="5"
+                                    Grid.ColumnSpan="2"
+                                    MinHeight="44"
+                                    Click="ValidateSkeletonButton_Click">
+                                <TextBlock Text="Validate Skeleton"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button Grid.Row="6"
+                                    Grid.Column="0"
+                                    MinHeight="44"
+                                    Click="TransferNotifiesButton_Click">
+                                <TextBlock Text="Transfer Notifies"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button Grid.Row="6"
+                                    Grid.Column="1"
+                                    MinHeight="44"
+                                    Click="TransferCurvesButton_Click">
+                                <TextBlock Text="Transfer Curves"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button Grid.Row="7"
+                                    Grid.ColumnSpan="2"
+                                    MinHeight="44"
+                                    Click="BatchRetargetButton_Click">
+                                <TextBlock Text="Batch Retarget..."
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                        </Grid>
+                        <Grid ColumnSpacing="8"
+                              RowSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Button Grid.Row="0"
+                                    Grid.Column="0"
+                                    MinHeight="44"
+                                    Click="RotateLeftButton_Click">
+                                <TextBlock Text="Rotate -90"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button Grid.Row="0"
+                                    Grid.Column="1"
+                                    MinHeight="44"
+                                    Click="RotateRightButton_Click">
+                                <TextBlock Text="Rotate +90"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button Grid.Row="1"
+                                    Grid.Column="0"
+                                    MinHeight="44"
+                                    Click="RotateFlipButton_Click">
+                                <TextBlock Text="Flip 180"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button Grid.Row="1"
+                                    Grid.Column="1"
+                                    MinHeight="44"
+                                    Click="RotatePitchForwardButton_Click">
+                                <TextBlock Text="Pitch -90"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button Grid.Row="2"
+                                    Grid.Column="0"
+                                    MinHeight="44"
+                                    Click="RotatePitchBackwardButton_Click">
+                                <TextBlock Text="Pitch +90"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button Grid.Row="2"
+                                    Grid.Column="1"
+                                    MinHeight="44"
+                                    Click="RotateRollLeftButton_Click">
+                                <TextBlock Text="Roll -90"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button Grid.Row="3"
+                                    Grid.ColumnSpan="2"
+                                    MinHeight="44"
+                                    Click="RotateRollRightButton_Click">
+                                <TextBlock Text="Roll +90"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="6"
+                        Grid.ColumnSpan="2"
+                        Padding="16"
+                        CornerRadius="16"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1">
+                    <StackPanel Spacing="8">
+                        <TextBlock FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Text="Mapping Profile" />
+                        <TextBlock x:Name="MappingProfileStatusText"
+                                   TextWrapping="Wrap"
+                                   Opacity="0.78"
+                                   Text="Save or load a retarget mapping profile in the Profiles/Retargeting folder." />
+                        <TextBox x:Name="MappingProfileNameTextBox"
+                                 Header="Profile Name"
+                                 PlaceholderText="e.g. captain_america" />
+                        <Grid ColumnSpacing="8"
+                              RowSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Button Grid.Column="0"
+                                    MinHeight="44"
+                                    Click="SaveMappingProfileButton_Click">
+                                <TextBlock Text="Save Profile"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button Grid.Column="1"
+                                    MinHeight="44"
+                                    Click="LoadMappingProfileButton_Click">
+                                <TextBlock Text="Load Profile"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                        </Grid>
+                        <TextBlock Text="Manual Override"
+                                   FontWeight="SemiBold" />
+                        <TextBox x:Name="ManualOverrideSourceTextBox"
+                                 Header="Source Bone"
+                                 PlaceholderText="Bone name in the source mesh" />
+                        <TextBox x:Name="ManualOverrideTargetTextBox"
+                                 Header="Target Bone"
+                                 PlaceholderText="Bone name in the target skeleton" />
+                        <Button MinHeight="44"
+                                HorizontalAlignment="Left"
+                                Click="ApplyManualOverrideButton_Click">
+                            <TextBlock Text="Apply Manual Override"
+                                       TextWrapping="Wrap"
+                                       TextAlignment="Center" />
+                        </Button>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="7"
+                        Grid.ColumnSpan="2"
+                        Padding="16"
+                        CornerRadius="16"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1">
+                    <StackPanel Spacing="8">
+                        <TextBlock FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Text="Skeleton Validation" />
+                        <TextBlock x:Name="ValidationStatusText"
+                                   TextWrapping="Wrap"
+                                   Opacity="0.78"
+                                   Text="Validate the source mesh against the selected target skeleton." />
+                        <ListView x:Name="ValidationListView"
+                                  Height="220">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Spacing="2" Margin="0,4">
+                                        <TextBlock Text="{Binding Name}"
+                                                   FontWeight="SemiBold"
+                                                   TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding Value}"
+                                                   Opacity="0.78"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="8"
+                        Grid.ColumnSpan="2"
+                        Padding="16"
+                        CornerRadius="16"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1">
+                    <StackPanel Spacing="8">
+                        <TextBlock FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Text="Animation Transfer" />
+                        <TextBlock x:Name="AnimationTransferStatusText"
+                                   TextWrapping="Wrap"
+                                   Opacity="0.78"
+                                   Text="Transfer notifies and curves from the current AnimSet into the retargeted output." />
+                        <ListView x:Name="AnimationTransferListView"
+                                  Height="220">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Spacing="2" Margin="0,4">
+                                        <TextBlock Text="{Binding Name}"
+                                                   FontWeight="SemiBold"
+                                                   TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding Value}"
+                                                   Opacity="0.78"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="9"
+                        Grid.Column="0"
+                        Padding="16"
+                        CornerRadius="16"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1">
+                    <StackPanel Spacing="8">
+                        <TextBlock FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Text="UE3 Compatibility Fixes" />
+                        <TextBlock x:Name="CompatibilityStatusText"
+                                   TextWrapping="Wrap"
+                                   Opacity="0.78"
+                                   Text="Apply UE3 compatibility fixes before exporting or replacing the mesh." />
+                        <StackPanel Spacing="4">
+                            <CheckBox Content="Strip UE4/UE5 metadata"
+                                      IsChecked="True" />
+                            <CheckBox Content="Collapse to LOD0"
+                                      IsChecked="True" />
+                            <CheckBox Content="Ensure UE3 bone ordering"
+                                      IsChecked="True" />
+                            <CheckBox Content="Preserve vertex colors / UVs / smoothing"
+                                      IsChecked="True" />
+                        </StackPanel>
+                        <Button Content="Apply UE3 Fixes"
+                                HorizontalAlignment="Left"
+                                Click="ApplyUe3FixesButton_Click" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="9"
+                        Grid.Column="1"
+                        Padding="16"
+                        CornerRadius="16"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1">
+                    <StackPanel Spacing="8">
+                        <TextBlock FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Text="Batch Retarget" />
+                        <TextBlock x:Name="BatchRetargetStatusText"
+                                   TextWrapping="Wrap"
+                                   Opacity="0.78"
+                                   Text="Choose a folder of UPKs and retarget each one using the current mesh and export selection." />
+                        <TextBox x:Name="BatchFolderTextBox"
+                                 Header="Batch Folder"
+                                 IsReadOnly="True"
+                                 PlaceholderText="Select a folder to process..." />
+                        <CheckBox x:Name="ReplaceAllLodsCheckBox"
+                                  Content="Replace all LODs"
+                                  IsChecked="False" />
+                        <Grid ColumnSpacing="8"
+                              RowSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Button Grid.Column="0"
+                                    Content="Select Folder"
+                                    Click="SelectBatchFolderButton_Click" />
+                            <Button Grid.Column="1"
+                                    Content="Run Batch Retarget"
+                                    Click="BatchRetargetButton_Click" />
+                        </Grid>
+                        <TextBlock x:Name="BatchRetargetLogText"
+                                   TextWrapping="Wrap"
+                                   Opacity="0.78"
+                                   Text="Batch log will be written after the run completes." />
+                        <ListView x:Name="BatchRetargetListView"
+                                  Height="220">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Spacing="2" Margin="0,4">
+                                        <TextBlock Text="{Binding Name}"
+                                                   FontWeight="SemiBold"
+                                                   TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding Value}"
+                                                   Opacity="0.78"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="10"
+                        Grid.Column="0"
+                        Padding="16"
+                        CornerRadius="16"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1">
+                    <StackPanel Spacing="8">
+                        <TextBlock FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Text="Output" />
+                        <TextBlock x:Name="OutputStatusText"
+                                   TextWrapping="Wrap"
+                                   Opacity="0.78"
+                                   Text="Export FBX or replace the selected UPK mesh once the workflow is ready." />
+                        <StackPanel Orientation="Horizontal"
+                                    Spacing="8">
+                            <Button Content="Export FBX 2013"
+                                    Click="ExportFbxButton_Click" />
+                            <Button Content="Replace Mesh In UPK"
+                                    Click="ReplaceMeshButton_Click" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="11"
+                        Grid.ColumnSpan="2"
+                        Padding="16"
+                        CornerRadius="16"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1">
+                    <StackPanel Spacing="8">
+                        <TextBlock FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Text="Retarget Details" />
+                        <TextBlock x:Name="TargetMeshText"
+                                   TextWrapping="Wrap"
+                                   Opacity="0.78"
+                                   Text="Select a SkeletalMesh export to view its LOD and bone summary." />
+                        <ListView x:Name="DetailListView">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding DisplayText}"
+                                               TextWrapping="Wrap" />
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</Page>
+

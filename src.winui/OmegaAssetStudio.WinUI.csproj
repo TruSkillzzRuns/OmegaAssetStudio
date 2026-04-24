@@ -1,0 +1,90 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <RootNamespace>OmegaAssetStudio.WinUI</RootNamespace>
+    <AssemblyName>OmegaAssetStudio</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <UseWinUI>true</UseWinUI>
+    <EnableMsixTooling>false</EnableMsixTooling>
+    <WindowsPackageType>None</WindowsPackageType>
+    <EnablePriGenTooling>false</EnablePriGenTooling>
+    <EnablePreviewMsixTooling>true</EnablePreviewMsixTooling>
+    <Platforms>x64</Platforms>
+    <PlatformTarget>x64</PlatformTarget>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <ApplicationIcon>Assets\OmegaAssetStudio.ico</ApplicationIcon>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <OutputPath>$(MSBuildProjectDirectory)\bin\x64\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\</OutputPath>
+    <OutDir>$(OutputPath)</OutDir>
+    <IntermediateOutputPath>$(MSBuildProjectDirectory)\obj\x64\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\</IntermediateOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Manifest Include="$(ApplicationManifest)" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.250907003" />
+    <PackageReference Include="System.Security.Permissions" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\src\OmegaAssetStudio.csproj" />
+    <ProjectReference Include="..\DDSLib\DDSLib.csproj" />
+    <ProjectReference Include="..\UpkManager\UpkManager.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\src.core\Unreal\SkeletalMesh\SkeletalMesh.cs" />
+    <Compile Include="..\src.core\Unreal\SkeletalMesh\SkeletalMeshLodModel.cs" />
+    <Compile Include="..\src.core\Unreal\SkeletalMesh\SkeletalMeshSection.cs" />
+    <Compile Include="..\src.core\Unreal\SkeletalMesh\SkeletalMeshChunk.cs" />
+    <Compile Include="..\src.core\Unreal\SkeletalMesh\SkeletalMeshVertexBuffer.cs" />
+    <Compile Include="..\src.core\TfcManifest\TfcManifestEntry.cs" />
+    <Compile Include="..\src.core\TfcManifest\TfcManifestDocument.cs" />
+    <Compile Include="..\src.core\TfcManifest\TfcManifestReader.cs" />
+    <Compile Include="..\src.core\TfcManifest\TfcManifestWriter.cs" />
+    <Compile Include="..\src.core\Services\TfcManifestEditorService.cs" />
+    <Compile Include="..\src.core\ThanosMigration\Models\ThanosMigrationFinding.cs" />
+    <Compile Include="..\src.core\ThanosMigration\Models\ThanosMigrationStep.cs" />
+    <Compile Include="..\src.core\ThanosMigration\Models\ThanosMigrationReport.cs" />
+    <Compile Include="..\src.core\ThanosMigration\Models\ThanosTfcEntry.cs" />
+    <Compile Include="..\src.core\ThanosMigration\Models\ThanosDependencyItem.cs" />
+    <Compile Include="..\src.core\ThanosMigration\Models\ThanosDependencyReport.cs" />
+    <Compile Include="..\src.core\ThanosMigration\Models\ThanosDiscoveryProgress.cs" />
+    <Compile Include="..\src.core\ThanosMigration\Models\ThanosPrototypeSource.cs" />
+    <Compile Include="..\src.core\ThanosMigration\Models\ThanosPrototypeMergePlan.cs" />
+    <Compile Include="..\src.core\ThanosMigration\Upk\ThanosUpkVersionConstants.cs" />
+    <Compile Include="..\src.core\ThanosMigration\Services\ThanosStructuralMigrationService.cs" />
+    <Compile Include="..\src.core\ThanosMigration\Services\ThanosTextureMigrationService.cs" />
+    <Compile Include="..\src.core\ThanosMigration\Services\TfcManifestService.cs" />
+    <Compile Include="..\src.core\ThanosMigration\Services\ThanosDependencyScannerService.cs" />
+    <Compile Include="..\src.core\ThanosMigration\Services\ThanosPrototypeDiscoveryService.cs" />
+    <Compile Include="..\src.core\ThanosMigration\Services\ThanosPrototypeMergePlanner.cs" />
+    <Compile Include="..\src.core\ThanosMigration\Services\ThanosPrototypeMergerService.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\backup-background.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\OmegaAssetStudio.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\OmegaAssetStudio.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Modules\Workflows\WorkflowText\*.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <Target Name="CopyNativeCompressionDlls" AfterTargets="AfterBuild">
+    <Copy SourceFiles="..\UpkManager\Compression\lib64\lzo2_64.dll" DestinationFolder="$(OutDir)" />
+    <Copy SourceFiles="..\UpkManager\Compression\lib64\msvcr100.dll" DestinationFolder="$(OutDir)" />
+  </Target>
+</Project>

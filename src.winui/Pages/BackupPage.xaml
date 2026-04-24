@@ -1,0 +1,185 @@
+﻿<Page
+    x:Class="OmegaAssetStudio.WinUI.Pages.BackupPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid x:Name="RootGrid"
+          Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="360" />
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   Grid.ColumnSpan="2"
+                   FontSize="28"
+                   FontWeight="SemiBold"
+                   Foreground="#F2F4F8"
+                   Text="Backup Workspace" />
+
+        <TextBlock Grid.Row="1"
+                   Grid.ColumnSpan="2"
+                   Margin="0,8,0,12"
+                   Opacity="0.78"
+                   Foreground="#E6EAF0"
+                   TextWrapping="Wrap"
+                   Text="Scan .bak files next to a package, inspect what the backup maps to, and restore the selected copy back over the original path." />
+
+        <Border Grid.Row="2"
+                Grid.Column="0"
+                Padding="16"
+                Margin="0,0,12,0"
+                CornerRadius="16"
+                Background="#B01A1F28"
+                BorderBrush="#6BB9C7D6"
+                BorderThickness="1">
+            <Grid RowDefinitions="Auto,*,Auto">
+                <StackPanel Spacing="8">
+                    <TextBlock x:Name="BackupTitleText"
+                               FontSize="22"
+                               FontWeight="SemiBold"
+                               Foreground="#F4F6FA"
+                               Text="No backups scanned yet." />
+                    <TextBlock x:Name="BackupStatusText"
+                               Opacity="0.78"
+                               Foreground="#D8E0EA"
+                               Text="Choose a folder and scan for .bak files." />
+                </StackPanel>
+
+                <ListView Grid.Row="1"
+                          x:Name="BackupListView"
+                          Margin="0,12,0,12"
+                          SelectionChanged="BackupListView_SelectionChanged">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Spacing="4" Margin="0,4">
+                                <TextBlock Text="{Binding BackupFileName}"
+                                           FontSize="16"
+                                           FontWeight="SemiBold"
+                                           Foreground="#FAFBFD"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Text="{Binding BackupPath}"
+                                           Foreground="#D2DAE4"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Text="{Binding LastWriteTimeText}"
+                                           Foreground="#C6D0DC" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+
+                <TextBlock Grid.Row="2"
+                           x:Name="BackupSummaryText"
+                           TextWrapping="Wrap"
+                           Foreground="#DCE4ED"
+                           Text="Backup details will appear here once results are scanned." />
+            </Grid>
+        </Border>
+
+        <ScrollViewer Grid.Row="2"
+                      Grid.Column="1"
+                      VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="10">
+                <Border Padding="16"
+                        CornerRadius="16"
+                        Background="#B01A1F28"
+                        BorderBrush="#6BB9C7D6"
+                        BorderThickness="1">
+                    <StackPanel Spacing="8">
+                        <TextBlock FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Foreground="#F4F6FA"
+                                   Text="Source" />
+                        <TextBlock x:Name="FolderStatusText"
+                                   TextWrapping="Wrap"
+                                   Foreground="#D8E0EA"
+                                   Text="No folder selected." />
+                        <TextBox x:Name="FolderPathTextBox"
+                                 Header="Backup Folder"
+                                 PlaceholderText="Select a folder that contains .bak files..." />
+                        <CheckBox x:Name="RecursiveCheckBox"
+                                  Content="Scan subfolders" />
+                        <ItemsControl HorizontalAlignment="Stretch">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <ItemsWrapGrid Orientation="Horizontal" MaximumRowsOrColumns="2" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <Button MinHeight="44"
+                                    Margin="0,0,8,8"
+                                    Click="UseCurrentUpkFolderButton_Click">
+                                <TextBlock Text="Use Recent UPK Folder"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button MinHeight="44"
+                                    Margin="0,0,8,8"
+                                    Click="BrowseFolderButton_Click">
+                                <TextBlock Text="Browse Folder"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button MinHeight="44"
+                                    Margin="0,0,8,8"
+                                    Click="ScanBackupsButton_Click">
+                                <TextBlock Text="Scan Backups"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                            <Button MinHeight="44"
+                                    Margin="0,0,8,8"
+                                    Click="RefreshButton_Click">
+                                <TextBlock Text="Refresh"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Button>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <Border Padding="16"
+                        CornerRadius="16"
+                        Background="#B01A1F28"
+                        BorderBrush="#6BB9C7D6"
+                        BorderThickness="1">
+                    <StackPanel Spacing="8">
+                        <TextBlock FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Foreground="#F4F6FA"
+                                   Text="Actions" />
+                        <Button MinHeight="44"
+                                Click="RestoreSelectedButton_Click">
+                            <TextBlock Text="Restore Selected Backup"
+                                       TextWrapping="Wrap"
+                                       TextAlignment="Center" />
+                        </Button>
+                    </StackPanel>
+                </Border>
+
+                <Border Padding="16"
+                        CornerRadius="16"
+                        Background="#B01A1F28"
+                        BorderBrush="#6BB9C7D6"
+                        BorderThickness="1">
+                    <StackPanel Spacing="8">
+                        <TextBlock FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Foreground="#F4F6FA"
+                                   Text="Details" />
+                        <ListView x:Name="DetailsListView"
+                                  Background="Transparent" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>
+

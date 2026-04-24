@@ -1,0 +1,31 @@
+Retarget Workflow
+
+1. Choose the target character or package.
+Browse the UPK that contains the SkeletalMesh you want to replace. Select the correct export and LOD before you load anything else. The target side should be the final character or skeleton family you want to modify, not a random mesh from the same package.
+
+2. Load the source assets.
+Import Source Mesh is required because it provides the mesh you want to retarget from. Import Target Skeleton is useful when the source came from a different rig and you need a better skeleton reference. Import AnimSet and Import Textures are optional support assets, but they help when you want to preview animation or preserve material context while retargeting.
+
+3. Inspect both skeletons before mapping.
+Check the source and target bone counts, hierarchy, and general stance. Make sure the source mesh is not obviously scaled, mirrored, or rotated away from the target rig. If the preview or summary text shows a mismatch, fix that before you start bone mapping.
+
+4. Generate the first bone map.
+Run Auto Map Bones to create the base UPK Bone to Player Bone mapping. Review the Bone Mapping table carefully after the automatic pass. UPK Bone is the destination game bone, while Player Bone is the imported source bone that will drive it. Fix any missing spine, clavicle, arm, hand, leg, or root mappings before moving on.
+
+5. Validate pose and transform alignment.
+Use the preview window to check whether the source mesh is facing the same direction as the target skeleton. If the character is sideways, backwards, too high, too low, too large, or too small, run the auto orient and auto scale tools before export. Manual rotate, pitch, and roll controls should only be used when the automatic alignment still leaves the mesh in the wrong orientation.
+
+6. Transfer weights and bind the mesh.
+Apply Weight Transfer to move skin weights into the target skeleton context. This step should make the mesh deform more like the destination character instead of the original source. Once the mapping, orientation, and scale look correct, run One-Click Bind To Skeleton to finish the basic retarget binding.
+
+7. Apply preview diagnostics.
+Use Apply Pose Preview after weight transfer or one-click bind to expose deformation problems before export. Watch for shoulder collapse, elbow pinching, wrist twist, hip drift, or leg deformation. If the pose looks unstable, return to bone mapping or transform alignment and fix the issue before continuing.
+
+8. Apply UE3 compatibility fixes.
+Run Apply UE3 Fixes to normalize the result for Marvel Heroes package requirements. Keep the checklist enabled unless you have a specific reason to preserve a custom layout. This step helps keep the export compatible with the game’s expected mesh and package structure.
+
+9. Choose your retarget output method.
+Decide whether you want to export the retargeted mesh for review or replace the mesh directly in the UPK. Export FBX is best when you want to inspect the result in an external tool. Replace Mesh In UPK is the final writeback path when the retargeted mesh already looks correct inside the preview.
+
+10. Export or replace the retargeted result.
+Save the finished mesh only after the pose, weights, transforms, and compatibility fixes all look correct. If the mesh is still not clean, go back to the bone map, preview, or transform controls and correct the issue before the final export. Keep the source mesh available so you can compare or recover if you need another pass.

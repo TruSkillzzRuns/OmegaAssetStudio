@@ -1,0 +1,52 @@
+﻿<Window
+    x:Class="OmegaAssetStudio.WinUI.Modules.Workflows.WorkflowsView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="Workflows"
+    mc:Ignorable="d">
+
+    <Grid x:Name="RootGrid"
+          Padding="16"
+          RowDefinitions="Auto,*"
+          Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <StackPanel Spacing="4">
+            <TextBlock FontSize="26"
+                       FontWeight="SemiBold"
+                       Text="Workflows" />
+            <TextBlock Opacity="0.78"
+                       TextWrapping="Wrap"
+                       Text="Quick reference steps for the current tool workflows." />
+        </StackPanel>
+
+        <TabView Grid.Row="1"
+                 Margin="0,16,0,0">
+            <TabViewItem Header="Mesh Fusion Lab">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <TextBlock TextWrapping="Wrap"
+                               Text="{Binding MeshFusionLabText}" />
+                </ScrollViewer>
+            </TabViewItem>
+            <TabViewItem Header="Textures 2.0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <TextBlock TextWrapping="Wrap"
+                               Text="{Binding Textures2Text}" />
+                </ScrollViewer>
+            </TabViewItem>
+            <TabViewItem Header="Material Editor 1.0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <TextBlock TextWrapping="Wrap"
+                               Text="{Binding MaterialEditorText}" />
+                </ScrollViewer>
+            </TabViewItem>
+            <TabViewItem Header="Retarget Tool">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <TextBlock TextWrapping="Wrap"
+                               Text="{Binding RetargetText}" />
+                </ScrollViewer>
+            </TabViewItem>
+        </TabView>
+    </Grid>
+</Window>
+
