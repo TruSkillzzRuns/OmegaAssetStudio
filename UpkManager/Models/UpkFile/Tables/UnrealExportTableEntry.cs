@@ -156,6 +156,12 @@ namespace UpkManager.Models.UpkFile.Tables
             if (UnrealObject == null)
             {
                 SerialDataOffset = BuilderSerialDataOffset = CurrentOffset;
+                if (UnrealObjectReader != null && SerialDataSize > 0)
+                {
+                    BuilderSerialDataSize = SerialDataSize;
+                    return BuilderSerialDataSize;
+                }
+
                 SerialDataSize = BuilderSerialDataSize = 0;
                 return 0;
             }

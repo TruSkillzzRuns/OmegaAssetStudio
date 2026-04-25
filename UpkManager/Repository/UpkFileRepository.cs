@@ -220,6 +220,13 @@ namespace UpkManager.Repository {
         {
             bool canPreserveRaw = export.UnrealObjectReader != null && export.SerialDataSize > 0;
 
+            if (canPreserveRaw)
+            {
+                SetObject(export, "UnrealObject", null);
+                log?.Invoke($"Info: export preserved as raw bytes: {export.GetPathName()}");
+                return true;
+            }
+
             try
             {
                 if (export.UnrealObject == null)
@@ -281,6 +288,12 @@ namespace UpkManager.Repository {
         }
 
         private static void SetReference(UnrealExportTableEntry export, string propertyName, int value)
+        {
+            PropertyInfo? property = typeof(UnrealExportTableEntry).GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            property?.SetValue(export, value);
+        }
+
+        private static void SetObject(UnrealExportTableEntry export, string propertyName, object? value)
         {
             PropertyInfo? property = typeof(UnrealExportTableEntry).GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             property?.SetValue(export, value);

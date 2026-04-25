@@ -126,6 +126,39 @@
 
                         <Border Padding="12" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
                             <StackPanel Spacing="10">
+                                <TextBlock Text="Resource Prototype Scanner" FontSize="18" FontWeight="SemiBold" />
+                                <TextBox Header="Prototype source folder"
+                                         Text="{Binding ResourcePrototypeSourcePath, Mode=TwoWay}"
+                                         PlaceholderText="Select a folder of extracted resource prototype JSON files." />
+                                <Button Content="Browse Source..."
+                                        Command="{Binding BrowseResourcePrototypeSourceCommand}" />
+                                <TextBox Header="Output folder"
+                                         Text="{Binding ResourcePrototypeOutputDirectory, Mode=TwoWay}"
+                                         PlaceholderText="Select the folder that will receive scan reports." />
+                                <Button Content="Browse Output..."
+                                        Command="{Binding BrowseResourcePrototypeOutputCommand}" />
+                                <Button Content="Scan Resource Prototypes"
+                                        Command="{Binding ScanResourcePrototypesCommand}" />
+                                <TextBlock Text="{Binding ResourcePrototypeStatusText}" TextWrapping="Wrap" />
+                                <TextBlock Text="{Binding ResourcePrototypeSummaryText}" TextWrapping="Wrap" Opacity="0.85" />
+                                <TextBlock Text="ClientMap Dependencies" FontWeight="SemiBold" />
+                                <ListView ItemsSource="{Binding ClientMapDependencies}" MinHeight="180">
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Spacing="2">
+                                                <TextBlock Text="{Binding ClientMapName}" FontWeight="SemiBold" />
+                                                <TextBlock Text="{Binding RequiredUpksText}" TextWrapping="Wrap" FontSize="12" Opacity="0.8" />
+                                                <TextBlock Text="{Binding RequiredPrototypesText}" TextWrapping="Wrap" FontSize="12" Opacity="0.8" />
+                                                <TextBlock Text="{Binding SourceCellsText}" TextWrapping="Wrap" FontSize="12" Opacity="0.65" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Padding="12" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                            <StackPanel Spacing="10">
                                 <TextBlock Text="Thanos Raid" FontSize="18" FontWeight="SemiBold" />
                                 <ComboBox SelectedIndex="{Binding CurrentModeIndex, Mode=TwoWay}">
                                     <ComboBoxItem Content="Standard" />

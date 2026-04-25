@@ -6,6 +6,107 @@ namespace OmegaAssetStudio.MeshPreview;
 
 public sealed class UE3ToPreviewMeshConverter
 {
+    public MeshPreviewMesh Convert(UStaticMesh staticMesh, int lodIndex, Action<string> log = null)
+    {
+        if (staticMesh == null)
+            throw new ArgumentNullException(nameof(staticMesh));
+
+        if (staticMesh.LODModels is null || lodIndex < 0 || lodIndex >= staticMesh.LODModels.Count)
+            throw new ArgumentOutOfRangeException(nameof(lodIndex));
+
+        FStaticMeshRenderData lod = staticMesh.LODModels[lodIndex];
+        GLVertex[] vertices;
+        uint[] indices;
+
+        try
+        {
+            vertices = [..(lod.GetGLVertexData() ?? [])];
+            indices = [..(lod.IndexBuffer?.Indices ?? [])];
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Unable to build UE3 static mesh preview for LOD {lodIndex}: {ex.Message}", ex);
+        }
+
+        List<MeshPreviewSection> sections = [];
+        if (lod.Elements is not null && lod.Elements.Count > 0)
+        {
+            for (int sectionIndex = 0; sectionIndex < lod.Elements.Count; sectionIndex++)
+            {
+                FStaticMeshElement element = lod.Elements[sectionIndex];
+                if (element.FirstIndex >= indices.Length)
+                {
+                    log?.Invoke($"Skipping static section {sectionIndex} because its start index {element.FirstIndex} exceeds the index buffer ({indices.Length}).");
+                    continue;
+                }
+
+                uint end = element.FirstIndex + (element.NumTriangles * 3);
+                if (end > indices.Length)
+                {
+                    log?.Invoke($"Skipping static section {sectionIndex} because its index range [{element.FirstIndex}, {end}) exceeds the index buffer ({indices.Length}).");
+                    continue;
+                }
+
+                sections.Add(new MeshPreviewSection
+                {
+                    Index = sectionIndex,
+                    MaterialIndex = element.MaterialIndex,
+                    BaseIndex = (int)element.FirstIndex,
+                    IndexCount = (int)element.NumTriangles * 3,
+                    Name = $"Element {sectionIndex}",
+                    Color = PreviewPalette.ColorForIndex(sectionIndex)
+                });
+            }
+        }
+
+        if (sections.Count == 0 && indices.Length > 0)
+        {
+            sections.Add(new MeshPreviewSection
+            {
+                Index = 0,
+                MaterialIndex = 0,
+                BaseIndex = 0,
+                IndexCount = indices.Length,
+                Name = "StaticSection0",
+                Color = PreviewPalette.ColorForIndex(0)
+            });
+        }
+
+        if (sections.Count == 0)
+            throw new InvalidOperationException($"LOD {lodIndex} did not contain any renderable static mesh sections.");
+
+        MeshPreviewMesh previewMesh = new()
+        {
+            Name = "UE3 StaticMesh"
+        };
+
+        previewMesh.Sections.AddRange(sections);
+        for (int i = 0; i + 2 < indices.Length; i += 3)
+        {
+            previewMesh.Indices.Add(indices[i]);
+            previewMesh.Indices.Add(indices[i + 2]);
+            previewMesh.Indices.Add(indices[i + 1]);
+        }
+
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            previewMesh.Vertices.Add(new MeshPreviewVertex
+            {
+                Position = vertices[i].Position,
+                Normal = NormalizeOrFallback(vertices[i].Normal),
+                Tangent = NormalizeOrFallback(vertices[i].Tangent),
+                Bitangent = NormalizeOrFallback(vertices[i].Bitangent),
+                Uv = vertices[i].TexCoord,
+                SectionIndex = ResolveSectionIndex(i, sections, previewMesh.Indices)
+            });
+        }
+
+        BuildBounds(previewMesh);
+        BuildUvSeams(previewMesh);
+        log?.Invoke($"Loaded UE3 StaticMesh preview with {previewMesh.Vertices.Count} vertices, {previewMesh.Indices.Count / 3} triangles, and {previewMesh.Sections.Count} sections.");
+        return previewMesh;
+    }
+
     public MeshPreviewMesh Convert(USkeletalMesh skeletalMesh, int lodIndex, Action<string> log = null)
     {
         if (skeletalMesh == null)

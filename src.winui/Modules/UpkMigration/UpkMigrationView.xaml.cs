@@ -26,6 +26,8 @@ public sealed partial class UpkMigrationView : Page
         ViewModel.SelectUpksRequestedAsync = SelectUpksAsync;
         ViewModel.BrowseOutputDirectoryRequestedAsync = BrowseOutputDirectoryAsync;
         ViewModel.BrowseTextureManifestDirectoryRequestedAsync = BrowseOutputDirectoryAsync;
+        ViewModel.BrowseResourcePrototypeSourceRequestedAsync = BrowseOutputDirectoryAsync;
+        ViewModel.BrowseResourcePrototypeOutputRequestedAsync = BrowseOutputDirectoryAsync;
         ViewModel.PrototypeMerger.BrowseReportRequestedAsync = BrowseDependencyReportAsync;
         ViewModel.PrototypeMerger.BrowseClient148RootRequestedAsync = BrowseOutputDirectoryAsync;
         ViewModel.PrototypeMerger.BrowseClient152RootRequestedAsync = BrowseOutputDirectoryAsync;

@@ -243,26 +243,24 @@ namespace UpkManager.Models.UpkFile
 
         public override int GetBuilderSize()
         {
-            BuilderSize = sizeof(uint) * 7 // TODO recalc
-                        + sizeof(ushort) * 2
-                        + sizeof(int) * 10
+            BuilderSize = sizeof(uint) // Signature
+                        + sizeof(ushort) * 2 // Version, Licensee
+                        + sizeof(int) // Size
                         + Group.GetBuilderSize()
+                        + sizeof(uint) // Flags
+                        + sizeof(int) * 11 // Table offsets/counts through ThumbnailTableOffset
                         + Guid.Length
-                        + GenerationTable.Sum(gen => gen.GetBuilderSize());
-
-            BuilderSize += sizeof(uint); // EngineVersion
-            BuilderSize += sizeof(uint); // CookerVersion
-            BuilderSize += sizeof(uint); // CompressionFlags
-            BuilderSize += sizeof(int); // CompressionTableCount
-
-            if (CompressedChunks.Any())
-                BuilderSize += CompressedChunks.Count * (sizeof(int) * 4);
-
-            BuilderSize += sizeof(uint); // PackageSource
-            BuilderSize += sizeof(int); // AdditionalPackagesToCook count
-            BuilderSize += AdditionalPackagesToCook.Sum(package => package.GetBuilderSize());
-            BuilderSize += sizeof(int); // TextureAllocations count
-            BuilderSize += TextureAllocations.GetBuilderSize();
+                        + sizeof(int) // GenerationTableCount
+                        + GenerationTable.Sum(gen => gen.GetBuilderSize())
+                        + sizeof(uint) // EngineVersion
+                        + sizeof(uint) // CookerVersion
+                        + sizeof(uint) // CompressionFlags
+                        + sizeof(int) // CompressionTableCount
+                        + (CompressedChunks.Any() ? CompressedChunks.Count * (sizeof(int) * 4) : 0)
+                        + sizeof(uint) // PackageSource
+                        + sizeof(int) // AdditionalPackagesToCook count
+                        + AdditionalPackagesToCook.Sum(package => package.GetBuilderSize())
+                        + TextureAllocations.GetBuilderSize();
 
             BuilderNameTableOffset = BuilderSize;
 

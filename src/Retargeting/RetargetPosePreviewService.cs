@@ -16,6 +16,14 @@ public sealed class RetargetPosePreviewService
 
         Matrix4x4[] bindGlobals = posedMesh.Bones.Select(static bone => bone.GlobalTransform).ToArray();
         Matrix4x4[] posedGlobals = posedMesh.Bones.Select(static bone => bone.GlobalTransform).ToArray();
+
+        // FIX: Align the pose preview mesh with the preview camera's Z-up world.
+        Matrix4x4 correction = Matrix4x4.CreateRotationX(MathF.PI / 2.0f);
+        for (int i = 0; i < posedGlobals.Length; i++)
+        {
+            posedGlobals[i] = posedGlobals[i] * correction;
+        }
+
         Dictionary<string, int> boneIndexByName = BuildBoneIndexLookup(posedMesh.Bones);
         PoseFrame frame = PoseFrame.Build(posedMesh.Bones, boneIndexByName);
 

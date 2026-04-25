@@ -19,4 +19,7 @@
     <SolidColorBrush x:Key="OmegaAssetStudio.TextSecondaryBrush" Color="{StaticResource OmegaAssetStudio.TextSecondaryColor}" />
     <SolidColorBrush x:Key="OmegaAssetStudio.AccentBrush" Color="{StaticResource OmegaAssetStudio.AccentColor}" />
     <SolidColorBrush x:Key="OmegaAssetStudio.DarkSurfaceTextBrush" Color="{StaticResource OmegaAssetStudio.DarkSurfaceTextColor}" />
+    <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="{StaticResource OmegaAssetStudio.PanelBackgroundColor}" />
+    <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="{StaticResource OmegaAssetStudio.PanelBackgroundColor}" />
+    <SolidColorBrush x:Key="NavigationViewTopPaneBackground" Color="{StaticResource OmegaAssetStudio.PanelBackgroundColor}" />
 </ResourceDictionary>

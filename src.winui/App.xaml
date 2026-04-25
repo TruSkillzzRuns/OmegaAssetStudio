@@ -39,13 +39,13 @@
                 <Setter Property="Foreground" Value="{ThemeResource OmegaAssetStudio.TextPrimaryBrush}" />
             </Style>
             <Style TargetType="NavigationViewItem">
-                <Setter Property="Foreground" Value="{ThemeResource OmegaAssetStudio.DarkSurfaceTextBrush}" />
+                <Setter Property="Foreground" Value="{ThemeResource OmegaAssetStudio.TextPrimaryBrush}" />
             </Style>
-            <SolidColorBrush x:Key="NavigationViewItemForegroundSelected" Color="{ThemeResource OmegaAssetStudio.DarkSurfaceTextColor}" />
-            <SolidColorBrush x:Key="NavigationViewItemForegroundSelectedPointerOver" Color="{ThemeResource OmegaAssetStudio.DarkSurfaceTextColor}" />
-            <SolidColorBrush x:Key="NavigationViewItemForegroundSelectedPressed" Color="{ThemeResource OmegaAssetStudio.DarkSurfaceTextColor}" />
-            <SolidColorBrush x:Key="NavigationViewItemForegroundPointerOver" Color="{ThemeResource OmegaAssetStudio.DarkSurfaceTextColor}" />
-            <SolidColorBrush x:Key="NavigationViewItemForegroundPressed" Color="{ThemeResource OmegaAssetStudio.DarkSurfaceTextColor}" />
+            <SolidColorBrush x:Key="NavigationViewItemForegroundSelected" Color="{ThemeResource OmegaAssetStudio.TextPrimaryColor}" />
+            <SolidColorBrush x:Key="NavigationViewItemForegroundSelectedPointerOver" Color="{ThemeResource OmegaAssetStudio.TextPrimaryColor}" />
+            <SolidColorBrush x:Key="NavigationViewItemForegroundSelectedPressed" Color="{ThemeResource OmegaAssetStudio.TextPrimaryColor}" />
+            <SolidColorBrush x:Key="NavigationViewItemForegroundPointerOver" Color="{ThemeResource OmegaAssetStudio.TextPrimaryColor}" />
+            <SolidColorBrush x:Key="NavigationViewItemForegroundPressed" Color="{ThemeResource OmegaAssetStudio.TextPrimaryColor}" />
             <Style TargetType="TabViewItem">
                 <Setter Property="Foreground" Value="{ThemeResource OmegaAssetStudio.TextPrimaryBrush}" />
             </Style>

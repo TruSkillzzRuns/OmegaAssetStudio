@@ -9,6 +9,8 @@ using Microsoft.UI.Dispatching;
 using OmegaAssetStudio.ThanosMigration.Models;
 using OmegaAssetStudio.ThanosMigration.Services;
 using OmegaAssetStudio.TextureManager;
+using OmegaAssetStudio.WinUI.Modules.UpkMigration.Configuration;
+using OmegaAssetStudio.WinUI.Modules.UpkMigration.ResourceScanning;
 using OmegaAssetStudio.WinUI.Modules.UpkMigration.Models;
 
 namespace OmegaAssetStudio.WinUI.Modules.UpkMigration;
@@ -17,13 +19,21 @@ public sealed class UpkMigrationViewModel : INotifyPropertyChanged
 {
     private readonly DispatcherQueue? dispatcherQueue;
     private readonly UpkMigrationService service;
+    private readonly UpkMigrationConfig config;
+    private readonly ResourcePrototypeScannerService resourcePrototypeScanner = new();
     private string outputDirectory = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
         "OmegaAssetStudio_UpkMigration");
+    private string resourcePrototypeSourcePath = string.Empty;
+    private string resourcePrototypeOutputDirectory = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
+        "OmegaAssetStudio_UpkMigration_ResourceScanner");
     private string statusText = "Ready.";
     private string progressText = "Select one or more 1.48 UPKs to begin.";
     private double overallProgress;
     private string resultsSummaryText = "No migration has run yet.";
+    private string resourcePrototypeStatusText = "Ready.";
+    private string resourcePrototypeSummaryText = "No resource prototype scan has run yet.";
     private string selectedJobDetails = "No job selected.";
     private string logFilter = string.Empty;
     private string textureManifestDirectory = string.Empty;
@@ -33,6 +43,7 @@ public sealed class UpkMigrationViewModel : INotifyPropertyChanged
     private MigrationLogEntry? selectedLogEntry;
     private bool isBusy;
     private bool isThanosBusy;
+    private bool isResourcePrototypeScanning;
     private readonly ThanosStructuralMigrationService thanosStructuralService;
     private readonly ThanosTextureMigrationService thanosTextureService;
     private readonly TfcManifestService tfcManifestService;
@@ -44,6 +55,8 @@ public sealed class UpkMigrationViewModel : INotifyPropertyChanged
 
     public ObservableCollection<MigrationLogEntry> LogEntries { get; } = [];
 
+    public ObservableCollection<ClientMapDependency> ClientMapDependencies { get; } = [];
+
     public ThanosPrototypeMergerViewModel PrototypeMerger => prototypeMerger;
 
     public Func<Task<IReadOnlyList<string>>>? SelectUpksRequestedAsync { get; set; }
@@ -51,6 +64,10 @@ public sealed class UpkMigrationViewModel : INotifyPropertyChanged
     public Func<Task<string?>>? BrowseOutputDirectoryRequestedAsync { get; set; }
 
     public Func<Task<string?>>? BrowseTextureManifestDirectoryRequestedAsync { get; set; }
+
+    public Func<Task<string?>>? BrowseResourcePrototypeSourceRequestedAsync { get; set; }
+
+    public Func<Task<string?>>? BrowseResourcePrototypeOutputRequestedAsync { get; set; }
 
     public ICommand SelectUpksCommand { get; }
 
@@ -65,6 +82,12 @@ public sealed class UpkMigrationViewModel : INotifyPropertyChanged
     public ICommand MigrateThanosCommand { get; }
 
     public ICommand UpdateTextureManifestCommand { get; }
+
+    public ICommand BrowseResourcePrototypeSourceCommand { get; }
+
+    public ICommand BrowseResourcePrototypeOutputCommand { get; }
+
+    public ICommand ScanResourcePrototypesCommand { get; }
 
     public MigrationJob? SelectedJob
     {
@@ -107,8 +130,39 @@ public sealed class UpkMigrationViewModel : INotifyPropertyChanged
         {
             if (SetField(ref outputDirectory, value))
             {
+                config.OutputRoot = outputDirectory;
+                UpkMigrationConfigStore.Save(config);
                 RefreshJobOutputPaths();
                 UpdateStatus($"Output directory set to {outputDirectory}.");
+            }
+        }
+    }
+
+    public string ResourcePrototypeSourcePath
+    {
+        get => resourcePrototypeSourcePath;
+        set
+        {
+            if (SetField(ref resourcePrototypeSourcePath, value))
+            {
+                config.ResourcePrototypeSourcePath = resourcePrototypeSourcePath;
+                config.SipPath152 = resourcePrototypeSourcePath;
+                UpkMigrationConfigStore.Save(config);
+                UpdateResourcePrototypeStatus($"Resource prototype source set to {resourcePrototypeSourcePath}.");
+            }
+        }
+    }
+
+    public string ResourcePrototypeOutputDirectory
+    {
+        get => resourcePrototypeOutputDirectory;
+        set
+        {
+            if (SetField(ref resourcePrototypeOutputDirectory, value))
+            {
+                config.ResourcePrototypeOutputRoot = resourcePrototypeOutputDirectory;
+                UpkMigrationConfigStore.Save(config);
+                UpdateResourcePrototypeStatus($"Resource prototype output set to {resourcePrototypeOutputDirectory}.");
             }
         }
     }
@@ -147,6 +201,18 @@ public sealed class UpkMigrationViewModel : INotifyPropertyChanged
         private set => SetField(ref resultsSummaryText, value);
     }
 
+    public string ResourcePrototypeStatusText
+    {
+        get => resourcePrototypeStatusText;
+        private set => SetField(ref resourcePrototypeStatusText, value);
+    }
+
+    public string ResourcePrototypeSummaryText
+    {
+        get => resourcePrototypeSummaryText;
+        private set => SetField(ref resourcePrototypeSummaryText, value);
+    }
+
     public string LogFilter
     {
         get => logFilter;
@@ -157,6 +223,12 @@ public sealed class UpkMigrationViewModel : INotifyPropertyChanged
     {
         get => isBusy;
         private set => SetField(ref isBusy, value);
+    }
+
+    public bool IsResourcePrototypeScanning
+    {
+        get => isResourcePrototypeScanning;
+        private set => SetField(ref isResourcePrototypeScanning, value);
     }
 
     public bool IsThanosBusy
@@ -214,6 +286,19 @@ public sealed class UpkMigrationViewModel : INotifyPropertyChanged
         this.thanosStructuralService = thanosStructuralService;
         this.thanosTextureService = thanosTextureService;
         this.tfcManifestService = tfcManifestService;
+        config = UpkMigrationConfigStore.Load();
+        if (string.IsNullOrWhiteSpace(config.LogPath))
+            config.LogPath = RuntimeLogPaths.UpkMigrationResourceScannerLogPath;
+
+        if (!string.IsNullOrWhiteSpace(config.OutputRoot))
+            outputDirectory = config.OutputRoot;
+        if (!string.IsNullOrWhiteSpace(config.ResourcePrototypeSourcePath))
+            resourcePrototypeSourcePath = config.ResourcePrototypeSourcePath;
+        else if (!string.IsNullOrWhiteSpace(config.SipPath152))
+            resourcePrototypeSourcePath = config.SipPath152;
+        if (!string.IsNullOrWhiteSpace(config.ResourcePrototypeOutputRoot))
+            resourcePrototypeOutputDirectory = config.ResourcePrototypeOutputRoot;
+
         prototypeMerger = new ThanosPrototypeMergerViewModel(
             new ThanosPrototypeDiscoveryService(),
             new ThanosPrototypeMergePlanner(),
@@ -227,11 +312,15 @@ public sealed class UpkMigrationViewModel : INotifyPropertyChanged
         StartMigrationCommand = new AsyncRelayCommand(StartMigrationAsync);
         BrowseOutputDirectoryCommand = new AsyncRelayCommand(BrowseOutputDirectoryAsync);
         BrowseTextureManifestDirectoryCommand = new AsyncRelayCommand(BrowseTextureManifestDirectoryAsync);
+        BrowseResourcePrototypeSourceCommand = new AsyncRelayCommand(BrowseResourcePrototypeSourceAsync);
+        BrowseResourcePrototypeOutputCommand = new AsyncRelayCommand(BrowseResourcePrototypeOutputAsync);
+        ScanResourcePrototypesCommand = new AsyncRelayCommand(ScanResourcePrototypesAsync);
         AnalyzeThanosCommand = new AsyncRelayCommand(AnalyzeThanosAsync);
         MigrateThanosCommand = new AsyncRelayCommand(MigrateThanosAsync);
         UpdateTextureManifestCommand = new AsyncRelayCommand(UpdateTextureManifestAsync);
 
         UpdateStatus("Ready.");
+        ResourcePrototypeSummaryText = "No resource prototype scan has run yet.";
     }
 
     public async Task SelectUpksAsync()
@@ -289,6 +378,11 @@ public sealed class UpkMigrationViewModel : INotifyPropertyChanged
             try
             {
                 await service.RunMigrationAsync(Jobs, validatedOutputDirectory, TextureManifestDirectory);
+                if (IsThanosMode && !string.IsNullOrWhiteSpace(TextureManifestDirectory))
+                {
+                    UpdateStatus("Migration complete. Updating texture manifest...");
+                    await UpdateTextureManifestAsync().ConfigureAwait(true);
+                }
             }
             catch (Exception ex)
             {
@@ -343,7 +437,7 @@ public sealed class UpkMigrationViewModel : INotifyPropertyChanged
         IsThanosBusy = true;
         try
         {
-            CurrentMode = MigrationMode.ThanosRaid;
+            await InvokeOnUiAsync(() => CurrentMode = MigrationMode.ThanosRaid).ConfigureAwait(false);
             PostToUi(() =>
             {
                 ThanosSteps.Clear();
@@ -412,25 +506,28 @@ public sealed class UpkMigrationViewModel : INotifyPropertyChanged
                 }
             });
 
-            UpdateStatus("Thanos Raid analysis complete.");
+            await InvokeOnUiAsync(() => UpdateStatus("Thanos Raid analysis complete.")).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            ThanosSteps.Clear();
-            ThanosSteps.Add(new ThanosMigrationStep
+            await InvokeOnUiAsync(() =>
             {
-                Name = "Thanos Analysis",
-                Description = "Analyze Thanos Raid package state.",
-                Status = ThanosMigrationStepStatus.Failed,
-                Reason = ex.Message,
-                Exception = ex
-            });
+                ThanosSteps.Clear();
+                ThanosSteps.Add(new ThanosMigrationStep
+                {
+                    Name = "Thanos Analysis",
+                    Description = "Analyze Thanos Raid package state.",
+                    Status = ThanosMigrationStepStatus.Failed,
+                    Reason = ex.Message,
+                    Exception = ex
+                });
 
-            UpdateStatus($"Thanos analysis failed: {ex.Message}");
+                UpdateStatus($"Thanos analysis failed: {ex.Message}");
+            }).ConfigureAwait(false);
         }
         finally
         {
-            IsThanosBusy = false;
+            await InvokeOnUiAsync(() => IsThanosBusy = false).ConfigureAwait(false);
         }
     }
 
@@ -525,6 +622,55 @@ public sealed class UpkMigrationViewModel : INotifyPropertyChanged
         }
 
         return Task.CompletedTask;
+    }
+
+    public async Task ScanResourcePrototypesAsync()
+    {
+        if (IsBusy || IsResourcePrototypeScanning)
+            return;
+
+        if (string.IsNullOrWhiteSpace(ResourcePrototypeSourcePath))
+        {
+            UpdateResourcePrototypeStatus("Select a resource prototype source path before scanning.");
+            return;
+        }
+
+        IsResourcePrototypeScanning = true;
+        try
+        {
+            UpkMigrationConfigStore.Save(config);
+            ResourcePrototypeScanReport report = await resourcePrototypeScanner.ScanAsync(
+                ResourcePrototypeSourcePath,
+                config,
+                message => PostToUi(() => ResourcePrototypeStatusText = message)).ConfigureAwait(false);
+
+            PostToUi(() =>
+            {
+                ClientMapDependencies.Clear();
+                foreach (ClientMapDependency dependency in report.ClientMapDependencies)
+                    ClientMapDependencies.Add(dependency);
+
+                ResourcePrototypeSummaryText = report.Summary;
+                ResourcePrototypeStatusText = $"Scanned {report.ClientMapCount:N0} ClientMap dependency set(s).";
+            });
+
+            string outputDirectory = string.IsNullOrWhiteSpace(ResourcePrototypeOutputDirectory)
+                ? OutputDirectory
+                : ResourcePrototypeOutputDirectory;
+            if (!string.IsNullOrWhiteSpace(outputDirectory))
+            {
+                string writtenDirectory = await resourcePrototypeScanner.ExportAsync(report, outputDirectory, config.LogPath).ConfigureAwait(false);
+                PostToUi(() => ResourcePrototypeStatusText = $"Resource prototype scan exported to {writtenDirectory}.");
+            }
+        }
+        catch (Exception ex)
+        {
+            UpdateResourcePrototypeStatus($"Resource prototype scan failed: {ex.Message}");
+        }
+        finally
+        {
+            IsResourcePrototypeScanning = false;
+        }
     }
 
     private async Task<ThanosMigrationReport?> AnalyzeThanosJobAsync(MigrationJob job, int jobIndex, int totalJobs)
@@ -719,6 +865,31 @@ public sealed class UpkMigrationViewModel : INotifyPropertyChanged
     {
         StatusText = message;
         service.StatusText = message;
+    }
+
+    private async Task BrowseResourcePrototypeSourceAsync()
+    {
+        if (BrowseResourcePrototypeSourceRequestedAsync is null)
+            return;
+
+        string? path = await BrowseResourcePrototypeSourceRequestedAsync().ConfigureAwait(true);
+        if (!string.IsNullOrWhiteSpace(path))
+            ResourcePrototypeSourcePath = path;
+    }
+
+    private async Task BrowseResourcePrototypeOutputAsync()
+    {
+        if (BrowseResourcePrototypeOutputRequestedAsync is null)
+            return;
+
+        string? path = await BrowseResourcePrototypeOutputRequestedAsync().ConfigureAwait(true);
+        if (!string.IsNullOrWhiteSpace(path))
+            ResourcePrototypeOutputDirectory = path;
+    }
+
+    private void UpdateResourcePrototypeStatus(string message)
+    {
+        ResourcePrototypeStatusText = message;
     }
 
     private void PostToUi(Action action)

@@ -32,7 +32,16 @@ public sealed class MinimapViewModel : WorldToolViewModelBase
     public MhMinimapData? SelectedMinimap
     {
         get => selectedMinimap;
-        set => SetProperty(ref selectedMinimap, value);
+        set
+        {
+            if (!SetProperty(ref selectedMinimap, value))
+                return;
+
+            OnPropertyChanged(nameof(SelectedMinimapName));
+            OnPropertyChanged(nameof(SelectedMinimapTexturePath));
+            OnPropertyChanged(nameof(SelectedMinimapMaterialPath));
+            OnPropertyChanged(nameof(SelectedMinimapNotes));
+        }
     }
 
     public string StatusText
@@ -41,11 +50,20 @@ public sealed class MinimapViewModel : WorldToolViewModelBase
         set => SetProperty(ref statusText, value);
     }
 
+    public string SelectedMinimapName => SelectedMinimap?.Name ?? "No minimap selected.";
+
+    public string SelectedMinimapTexturePath => SelectedMinimap?.TexturePath ?? "Texture path unavailable.";
+
+    public string SelectedMinimapMaterialPath => SelectedMinimap?.MaterialPath ?? "Material path unavailable.";
+
+    public string SelectedMinimapNotes => SelectedMinimap?.Notes ?? "Notes unavailable.";
+
     public void LoadMinimap()
     {
         MinimapLayers.Clear();
         foreach (MhMinimapData item in minimapService.LoadMinimap(SourceUpkPath))
             MinimapLayers.Add(item);
+        SelectedMinimap = MinimapLayers.Count > 0 ? MinimapLayers[0] : null;
         StatusText = $"Loaded {MinimapLayers.Count} minimap layer(s).";
     }
 }

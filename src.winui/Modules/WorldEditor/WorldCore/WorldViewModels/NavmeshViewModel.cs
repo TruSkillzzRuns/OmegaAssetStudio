@@ -32,7 +32,16 @@ public sealed class NavmeshViewModel : WorldToolViewModelBase
     public MhNavmeshData? SelectedNavmesh
     {
         get => selectedNavmesh;
-        set => SetProperty(ref selectedNavmesh, value);
+        set
+        {
+            if (!SetProperty(ref selectedNavmesh, value))
+                return;
+
+            OnPropertyChanged(nameof(SelectedNavmeshName));
+            OnPropertyChanged(nameof(SelectedNavmeshPolygonCount));
+            OnPropertyChanged(nameof(SelectedNavmeshBoundsText));
+            OnPropertyChanged(nameof(SelectedNavmeshNotes));
+        }
     }
 
     public string StatusText
@@ -41,11 +50,22 @@ public sealed class NavmeshViewModel : WorldToolViewModelBase
         set => SetProperty(ref statusText, value);
     }
 
+    public string SelectedNavmeshName => SelectedNavmesh?.Name ?? "No navmesh selected.";
+
+    public string SelectedNavmeshPolygonCount => SelectedNavmesh is null
+        ? "Polygon count unavailable."
+        : $"Polygons: {SelectedNavmesh.PolygonCount}";
+
+    public string SelectedNavmeshBoundsText => SelectedNavmesh?.BoundsText ?? "Bounds unavailable.";
+
+    public string SelectedNavmeshNotes => SelectedNavmesh?.Notes ?? "Notes unavailable.";
+
     public void LoadNavmesh()
     {
         NavmeshLayers.Clear();
         foreach (MhNavmeshData item in navmeshService.LoadNavmesh(SourceUpkPath))
             NavmeshLayers.Add(item);
+        SelectedNavmesh = NavmeshLayers.Count > 0 ? NavmeshLayers[0] : null;
         StatusText = $"Loaded {NavmeshLayers.Count} navmesh layer(s).";
     }
 }

@@ -235,6 +235,7 @@ public sealed class UpkMigrationService
                         {
                             result.Warnings.Add($"Mesh conversion skipped for {entry.PathName}: {ex.Message}");
                             AddLog(job, $"Warning: mesh conversion skipped for {entry.PathName}: {ex.Message}");
+                            AddLog(job, ex.ToString());
                         }
                     }
 
@@ -537,6 +538,7 @@ public sealed class UpkMigrationService
         int matchedTextures = 0;
         int missingManifestEntries = 0;
         int missingMipMaps = 0;
+        List<string> missingManifestExamples = [];
 
         TextureManifest.Initialize();
         TextureManifest.Instance.Entries.Clear();
@@ -581,7 +583,8 @@ public sealed class UpkMigrationService
             if (textureEntry is null)
             {
                 missingManifestEntries++;
-                log?.Invoke($"Warning: texture manifest entry not found for {export.PathName}");
+                if (missingManifestExamples.Count < 5 && !missingManifestExamples.Contains(export.PathName, StringComparer.OrdinalIgnoreCase))
+                    missingManifestExamples.Add(export.PathName);
                 continue;
             }
 
@@ -620,6 +623,14 @@ public sealed class UpkMigrationService
                 $"hydrated {hydratedTextures:N0}, matched {matchedTextures:N0}, " +
                 $"missing manifest entries {missingManifestEntries:N0}, missing mip maps {missingMipMaps:N0}, " +
                 $"lookup manifest present: {(lookupManifestExists ? "yes" : "no")}.");
+        }
+        else if (missingManifestEntries > 0)
+        {
+            string examples = missingManifestExamples.Count == 0
+                ? string.Empty
+                : $" Examples: {string.Join("; ", missingManifestExamples)}";
+            log?.Invoke(
+                $"Texture manifest lookup missed {missingManifestEntries:N0} texture entry(s); these were preserved for later manifest update.{examples}");
         }
 
         return entries;

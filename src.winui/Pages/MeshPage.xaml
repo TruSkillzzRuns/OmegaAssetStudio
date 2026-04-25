@@ -124,13 +124,18 @@
                                    Text="Mesh Filter" />
                         <TextBox x:Name="MeshFilterBox"
                                  TextChanged="MeshFilterBox_TextChanged"
-                                 PlaceholderText="Filter SkeletalMesh exports..." />
+                                 PlaceholderText="Filter SkeletalMesh / StaticMesh exports..." />
 
                         <TextBlock FontWeight="SemiBold"
                                    Text="SkeletalMesh Export" />
                         <ComboBox x:Name="MeshComboBox"
                                   SelectionChanged="MeshComboBox_SelectionChanged"
-                                  PlaceholderText="Select a SkeletalMesh export..." />
+                                  PlaceholderText="Select a SkeletalMesh or StaticMesh export..." />
+                        <CheckBox x:Name="IncludeStaticMeshesCheckBox"
+                                  Margin="0,4,0,0"
+                                  Content="Include StaticMesh exports"
+                                  Checked="IncludeStaticMeshesCheckBox_Checked"
+                                  Unchecked="IncludeStaticMeshesCheckBox_Unchecked" />
 
                         <TextBlock FontWeight="SemiBold"
                                    Text="LOD" />

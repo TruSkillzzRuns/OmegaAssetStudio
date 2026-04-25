@@ -49,7 +49,7 @@
                     <TextBlock x:Name="StatusTextBlock"
                                FontSize="17"
                                FontWeight="SemiBold"
-                               Foreground="{ThemeResource OmegaAssetStudio.DarkSurfaceTextBrush}"
+                               Foreground="{ThemeResource OmegaAssetStudio.TextPrimaryBrush}"
                                TextWrapping="Wrap"
                                Text="Status: ready." />
                     <ProgressBar x:Name="ScanProgressBar"
@@ -61,20 +61,20 @@
                     <TextBlock x:Name="ProgressTextBlock"
                                FontSize="16"
                                FontWeight="SemiBold"
-                               Foreground="{ThemeResource OmegaAssetStudio.DarkSurfaceTextBrush}"
+                               Foreground="{ThemeResource OmegaAssetStudio.TextPrimaryBrush}"
                                TextWrapping="Wrap"
                                Text="Progress: idle" />
                     <TextBlock x:Name="FoldersTextBlock"
                                FontSize="16"
-                               Foreground="{ThemeResource OmegaAssetStudio.DarkSurfaceTextBrush}"
+                               Foreground="{ThemeResource OmegaAssetStudio.TextPrimaryBrush}"
                                TextWrapping="Wrap" />
                     <TextBlock x:Name="SummaryTextBlock"
                                FontSize="16"
-                               Foreground="{ThemeResource OmegaAssetStudio.DarkSurfaceTextBrush}"
+                               Foreground="{ThemeResource OmegaAssetStudio.TextPrimaryBrush}"
                                TextWrapping="Wrap" />
                     <TextBlock x:Name="ValidationTextBlock"
                                FontSize="16"
-                               Foreground="{ThemeResource OmegaAssetStudio.DarkSurfaceTextBrush}"
+                               Foreground="{ThemeResource OmegaAssetStudio.TextPrimaryBrush}"
                                TextWrapping="Wrap"
                                Text="Validation: not run." />
                 </StackPanel>
@@ -94,7 +94,7 @@
                         BorderThickness="1">
                         <StackPanel Spacing="12">
                             <TextBlock FontSize="20"
-                                       Foreground="{ThemeResource OmegaAssetStudio.DarkSurfaceTextBrush}"
+                                       Foreground="{ThemeResource OmegaAssetStudio.TextPrimaryBrush}"
                                        FontWeight="SemiBold"
                                        Text="Scan &amp; Analyze" />
                         <TextBox x:Name="RootPathBox"
@@ -148,7 +148,7 @@
                         </Grid>
                         <StackPanel Spacing="6">
                             <TextBlock FontSize="16"
-                                       Foreground="{ThemeResource OmegaAssetStudio.DarkSurfaceTextBrush}"
+                                       Foreground="{ThemeResource OmegaAssetStudio.TextPrimaryBrush}"
                                        FontWeight="SemiBold"
                                        Text="Reports" />
                             <Grid ColumnSpacing="8" RowSpacing="8">
@@ -215,7 +215,7 @@
                         </StackPanel>
                         <StackPanel Spacing="8">
                             <TextBlock FontSize="16"
-                                       Foreground="{ThemeResource OmegaAssetStudio.DarkSurfaceTextBrush}"
+                                       Foreground="{ThemeResource OmegaAssetStudio.TextPrimaryBrush}"
                                        FontWeight="SemiBold"
                                        Text="Focused Analyzer Runs" />
                             <Grid ColumnSpacing="8" RowSpacing="8">

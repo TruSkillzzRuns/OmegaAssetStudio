@@ -14,6 +14,7 @@ internal static class RuntimeLogPaths
     public static string MflLogPath => GetLogPath("OmegaAssetStudio_WinUI_mfl.log");
     public static string UpkMigrationLogDirectory => GetLogDirectory("UpkMigration");
     public static string UpkMigrationLogPath => GetLogPath(Path.Combine("UpkMigration", "OmegaAssetStudio_WinUI_upk_migration.log"));
+    public static string UpkMigrationResourceScannerLogPath => GetLogPath(Path.Combine("UpkMigration", "OmegaAssetStudio_WinUI_resource_scanner.log"));
     public static string ObjectsLogPath => GetLogPath("OmegaAssetStudio_WinUI_objects.log");
     public static string MaterialProbeLogPath => GetLogPath("OmegaAssetStudio_WinUI_material_probe.log");
     public static string GetCrashSnapshotPath(DateTime timestamp) => GetLogPath($"OmegaAssetStudio_WinUI_crash_{timestamp:yyyyMMdd_HHmmss_fff}.txt");

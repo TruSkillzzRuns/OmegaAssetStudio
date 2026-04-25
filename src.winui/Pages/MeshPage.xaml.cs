@@ -44,9 +44,17 @@ public sealed partial class MeshPage : Page
     private const float DefaultPreviewPitch = 12.0f;
     private const float DefaultPreviewZoom = 1.45f;
 
+    private enum MeshExportKind
+    {
+        Skeletal,
+        Static
+    }
+
     private readonly UpkFileRepository repository = new();
     private readonly Dictionary<string, UnrealExportTableEntry> meshExports = new(System.StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, MeshExportKind> meshExportKinds = new(System.StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, USkeletalMesh> resolvedMeshCache = new(System.StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, UStaticMesh> resolvedStaticMeshCache = new(System.StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, string> resolvedMeshSourcePaths = new(System.StringComparer.OrdinalIgnoreCase);
     private readonly List<string> allMeshPaths = [];
     private readonly FbxToPreviewMeshConverter fbxToPreviewMeshConverter = new();
@@ -65,9 +73,10 @@ public sealed partial class MeshPage : Page
     private string currentView = PreviewView;
     private string currentFbxPath = string.Empty;
     private USkeletalMesh? currentSkeletalMesh;
+    private UStaticMesh? currentStaticMesh;
     private UnrealExportTableEntry? currentExport;
     private MeshPreviewMesh? currentPreviewMesh;
-    private USkeletalMesh? currentPreviewSourceMesh;
+    private object? currentPreviewSourceMesh;
     private int currentPreviewLodIndex = -1;
     private string exportFbxPath = string.Empty;
     private string importFbxPath = string.Empty;
@@ -105,9 +114,9 @@ public sealed partial class MeshPage : Page
         suppressSessionWrites = true;
         ApplySessionState();
         suppressSessionWrites = false;
-        StatusRows.Add("Open a UPK or use Objects handoff to start browsing SkeletalMesh exports.");
-        MeshSummaryRows.Add("Select a SkeletalMesh export to inspect it here.");
-        PreviewStatusText.Text = "Open a SkeletalMesh to generate the first native WinUI preview slice.";
+        StatusRows.Add("Open a UPK or use Objects handoff to start browsing mesh exports.");
+        MeshSummaryRows.Add("Select a mesh export to inspect it here.");
+        PreviewStatusText.Text = "Open a mesh export to generate the first native WinUI preview slice.";
         SetActiveView(PreviewView);
     }
 
@@ -207,6 +216,16 @@ public sealed partial class MeshPage : Page
         await LoadUpkAsync(lastContext.UpkPath, lastContext.ExportPath);
     }
 
+    private void IncludeStaticMeshesCheckBox_Checked(object sender, RoutedEventArgs e)
+    {
+        ApplyMeshFilter(MeshComboBox.SelectedItem as string);
+    }
+
+    private void IncludeStaticMeshesCheckBox_Unchecked(object sender, RoutedEventArgs e)
+    {
+        ApplyMeshFilter(MeshComboBox.SelectedItem as string);
+    }
+
     private async Task LoadUpkAsync(string upkPath, string? preferredExportPath = null)
     {
         try
@@ -214,17 +233,20 @@ public sealed partial class MeshPage : Page
             App.WriteDiagnosticsLog("Mesh.LoadUpkAsync", $"Start: {upkPath} preferred={preferredExportPath ?? "(none)"}");
             CurrentPathText.Text = "Loading...";
             StatusRows.Clear();
-            StatusRows.Add($"Loading SkeletalMesh exports from {upkPath}");
+            StatusRows.Add($"Loading mesh exports from {upkPath}");
             ClearInspectorCollections();
             MeshSummaryRows.Add("Reading UPK header and export table...");
             MeshComboBox.ItemsSource = null;
             LodComboBox.ItemsSource = null;
             meshExports.Clear();
+            meshExportKinds.Clear();
             resolvedMeshCache.Clear();
+            resolvedStaticMeshCache.Clear();
             resolvedMeshSourcePaths.Clear();
             allMeshPaths.Clear();
             currentExport = null;
             currentSkeletalMesh = null;
+            currentStaticMesh = null;
             previewScene.SetUe3Mesh(null);
             currentPreviewMesh = null;
             currentPreviewSourceMesh = null;
@@ -240,21 +262,26 @@ public sealed partial class MeshPage : Page
             CurrentPathText.Text = upkPath;
 
             List<string> names = [];
+            int skeletalCount = 0;
+            int staticCount = 0;
             foreach (UnrealExportTableEntry export in header.ExportTable)
             {
-                if (!string.Equals(export.ClassReferenceNameIndex?.Name, nameof(USkeletalMesh), System.StringComparison.OrdinalIgnoreCase) &&
-                    !string.Equals(export.ClassReferenceNameIndex?.Name, "SkeletalMesh", System.StringComparison.OrdinalIgnoreCase))
+                string className = export.ClassReferenceNameIndex?.Name ?? string.Empty;
+                if (IsSkeletalMeshClass(className))
                 {
+                    RegisterMeshExport(export, MeshExportKind.Skeletal, names);
+                    skeletalCount++;
                     continue;
                 }
 
-                string path = export.GetPathName();
-                meshExports[path] = export;
-                resolvedMeshSourcePaths[path] = path;
-                names.Add(path);
+                if (IsStaticMeshClass(className))
+                {
+                    RegisterMeshExport(export, MeshExportKind.Static, names);
+                    staticCount++;
+                }
             }
 
-            if (names.Count == 0)
+            if (skeletalCount == 0)
             {
                 App.WriteDiagnosticsLog("Mesh.LoadUpkAsync", "No class-name SkeletalMesh exports found; scanning parsed exports for USkeletalMesh objects.");
                 foreach (UnrealExportTableEntry export in header.ExportTable)
@@ -274,13 +301,42 @@ public sealed partial class MeshPage : Page
                         if (meshExports.ContainsKey(path))
                             continue;
 
-                        meshExports[path] = export;
-                        resolvedMeshSourcePaths[path] = path;
-                        names.Add(path);
+                        RegisterMeshExport(export, MeshExportKind.Skeletal, names);
+                        skeletalCount++;
                     }
                     catch (System.Exception ex)
                     {
                         App.WriteDiagnosticsLog("Mesh.LoadUpkAsync", $"Fallback export scan skipped {export.GetPathName()}: {ex.Message}");
+                    }
+                }
+            }
+
+            if (IncludeStaticMeshesCheckBox.IsChecked == true && staticCount == 0)
+            {
+                App.WriteDiagnosticsLog("Mesh.LoadUpkAsync", "No class-name StaticMesh exports found; scanning parsed exports for UStaticMesh objects.");
+                foreach (UnrealExportTableEntry export in header.ExportTable)
+                {
+                    try
+                    {
+                        if (export.UnrealObject is null)
+                        {
+                            await header.ReadExportObjectAsync(export, null).ConfigureAwait(true);
+                            await export.ParseUnrealObject(false, false).ConfigureAwait(true);
+                        }
+
+                        if (export.UnrealObject is not IUnrealObject { UObject: UStaticMesh })
+                            continue;
+
+                        string path = export.GetPathName();
+                        if (meshExports.ContainsKey(path))
+                            continue;
+
+                        RegisterMeshExport(export, MeshExportKind.Static, names);
+                        staticCount++;
+                    }
+                    catch (System.Exception ex)
+                    {
+                        App.WriteDiagnosticsLog("Mesh.LoadUpkAsync", $"Static mesh fallback skipped {export.GetPathName()}: {ex.Message}");
                     }
                 }
             }
@@ -314,10 +370,9 @@ public sealed partial class MeshPage : Page
                         if (meshExports.ContainsKey(displayPath))
                             continue;
 
-                        meshExports[displayPath] = export;
+                        RegisterMeshExport(export, MeshExportKind.Skeletal, names, displayPath);
                         resolvedMeshCache[displayPath] = referencedMesh;
                         resolvedMeshSourcePaths[displayPath] = componentPath;
-                        names.Add(displayPath);
                         App.WriteDiagnosticsLog("Mesh.LoadUpkAsync", $"Resolved component-backed mesh: {displayPath} via {componentPath}");
                     }
                     catch (System.Exception ex)
@@ -328,11 +383,13 @@ public sealed partial class MeshPage : Page
             }
 
             allMeshPaths.AddRange(names);
-            RecentUpkSession.RecordUpk(upkPath, "mesh", preferredExportPath, title: Path.GetFileName(upkPath), summary: $"Mesh workspace load: SkeletalMesh exports={names.Count:N0}");
+            RecentUpkSession.RecordUpk(upkPath, "mesh", preferredExportPath, title: Path.GetFileName(upkPath), summary: $"Mesh workspace load: SkeletalMesh exports={skeletalCount:N0}, StaticMesh exports={staticCount:N0}");
             ApplyMeshFilter(preferredExportPath);
             StatusRows.Clear();
             StatusRows.Add($"UPK: {upkPath}");
-            StatusRows.Add($"Found {names.Count:N0} SkeletalMesh exports.");
+            StatusRows.Add($"Found {skeletalCount:N0} SkeletalMesh exports.");
+            if (staticCount > 0)
+                StatusRows.Add($"Found {staticCount:N0} StaticMesh exports.");
             StatusRows.Add("Preview rendering host is not ported into WinUI yet, but live mesh/LOD data is.");
             StatusRows.Add("Use Preview / Exporter / Importer / Sections to move through the workspace.");
             SaveSessionState();
@@ -448,10 +505,11 @@ public sealed partial class MeshPage : Page
             StatusRows.Add($"Mesh selection failed while inspecting {meshPath}: {ex.Message}");
             PreviewStatusText.Text = $"Mesh selection failed while inspecting {meshPath}: 0x{ex.HResult:X8} {ex.Message}";
             MeshSummaryRows.Clear();
-            MeshSummaryRows.Add("Failed to load the selected SkeletalMesh.");
+            MeshSummaryRows.Add("Failed to load the selected mesh export.");
             MeshSummaryRows.Add("See the mesh error log on the desktop for the full stack trace.");
             currentExport = null;
             currentSkeletalMesh = null;
+            currentStaticMesh = null;
             currentPreviewMesh = null;
             currentPreviewSourceMesh = null;
             currentPreviewLodIndex = -1;
@@ -469,15 +527,26 @@ public sealed partial class MeshPage : Page
         if (MeshComboBox.SelectedItem is not string meshPath)
             return;
 
-        if (!TryResolveSelectedMesh(meshPath, out var export, out var skeletalMesh))
+        if (!TryResolveSelectedMesh(meshPath, out var export, out MeshExportKind kind, out var skeletalMesh, out var staticMesh))
             return;
 
-        if (export is null || skeletalMesh is null)
+        if (export is null)
             return;
 
         try
         {
-            PopulateLodRows(export, skeletalMesh);
+            if (kind == MeshExportKind.Static)
+            {
+                if (staticMesh is null)
+                    return;
+
+                PopulateLodRows(export, staticMesh);
+            }
+            else if (skeletalMesh is not null)
+            {
+                PopulateLodRows(export, skeletalMesh);
+            }
+
             SaveSessionState();
         }
         catch (System.Exception ex)
@@ -496,17 +565,17 @@ public sealed partial class MeshPage : Page
             InspectorTitle.Text = meshPath.Split('.').LastOrDefault() ?? export.ObjectNameIndex?.Name ?? export.GetPathName();
             InspectorSubtitle.Text = meshPath;
             ClearInspectorCollections();
-            MeshSummaryRows.Add("Parsing selected SkeletalMesh export...");
+            MeshSummaryRows.Add("Parsing selected mesh export...");
 
-            if (!TryResolveSelectedMesh(meshPath, out UnrealExportTableEntry? resolvedExport, out USkeletalMesh? skeletalMesh))
+            if (!TryResolveSelectedMesh(meshPath, out UnrealExportTableEntry? resolvedExport, out MeshExportKind kind, out USkeletalMesh? skeletalMesh, out UStaticMesh? staticMesh))
             {
                 ClearInspectorCollections();
-                MeshSummaryRows.Add("Selected export did not parse as USkeletalMesh.");
+                MeshSummaryRows.Add("Selected export did not resolve as a supported mesh type.");
                 LodComboBox.ItemsSource = null;
                 return;
             }
 
-            if (resolvedExport is null || skeletalMesh is null)
+            if (resolvedExport is null)
             {
                 ClearInspectorCollections();
                 MeshSummaryRows.Add("Selected export could not be resolved.");
@@ -517,11 +586,16 @@ public sealed partial class MeshPage : Page
             export = resolvedExport;
             currentExport = resolvedExport;
             currentSkeletalMesh = skeletalMesh;
+            currentStaticMesh = staticMesh;
 
-            LodComboBox.ItemsSource = Enumerable.Range(0, skeletalMesh.LODModels?.Count ?? 0)
+            int lodCount = kind == MeshExportKind.Static
+                ? staticMesh?.LODModels?.Count ?? 0
+                : skeletalMesh?.LODModels?.Count ?? 0;
+
+            LodComboBox.ItemsSource = Enumerable.Range(0, lodCount)
                 .Select(index => $"LOD{index}")
                 .ToList();
-            LodComboBox.SelectedIndex = skeletalMesh.LODModels?.Count > 0 ? 0 : -1;
+            LodComboBox.SelectedIndex = lodCount > 0 ? 0 : -1;
 
             MeshSummaryRows.Clear();
             MeshSummaryRows.Add($"Export Path: {meshPath}");
@@ -529,19 +603,39 @@ public sealed partial class MeshPage : Page
             MeshSummaryRows.Add($"Class: {export.ClassReferenceNameIndex?.Name ?? "Unknown"}");
             MeshSummaryRows.Add($"Outer: {export.OuterReferenceNameIndex?.Name ?? "(root)"}");
             MeshSummaryRows.Add($"Serial Size: {export.SerialDataSize:N0}");
-            MeshSummaryRows.Add($"Materials: {skeletalMesh.Materials?.Count ?? 0}");
-            MeshSummaryRows.Add($"Sockets: {skeletalMesh.Sockets?.Count ?? 0}");
-            MeshSummaryRows.Add($"LOD Models: {skeletalMesh.LODModels?.Count ?? 0}");
-            MeshSummaryRows.Add($"Ref Skeleton Bones: {skeletalMesh.RefSkeleton?.Count ?? 0}");
-            MeshSummaryRows.Add($"Skeletal Depth: {skeletalMesh.SkeletalDepth}");
-            MeshSummaryRows.Add($"Clothing Assets: {skeletalMesh.ClothingAssets?.Count ?? 0}");
+            if (kind == MeshExportKind.Static && staticMesh is not null)
+            {
+                int elementCount = staticMesh.LODModels?.Count > 0 ? staticMesh.LODModels[0].Elements?.Count ?? 0 : 0;
+                MeshSummaryRows.Add($"Material Elements: {elementCount}");
+                MeshSummaryRows.Add($"LOD Models: {staticMesh.LODModels?.Count ?? 0}");
+                MeshSummaryRows.Add($"Light Map Coordinate Index: {staticMesh.LightMapCoordinateIndex}");
+                MeshSummaryRows.Add($"Light Map Resolution: {staticMesh.LightMapResolution}");
+                MeshSummaryRows.Add($"Has Simplified: {staticMesh.bHasBeenSimplified}");
 
-            PopulateMaterials(skeletalMesh);
-            PopulateBones(skeletalMesh);
-            PopulatePreviewControlChoices(skeletalMesh);
-            PopulateWorkflowRows(export, skeletalMesh);
-            PopulateLodRows(export, skeletalMesh);
-            await RenderPreviewAsync(skeletalMesh, LodComboBox.SelectedIndex).ConfigureAwait(true);
+                PopulateStaticMaterials(staticMesh);
+                PopulateStaticBones(staticMesh);
+                PopulatePreviewControlChoices(null);
+                PopulateWorkflowRows(export, staticMesh);
+                PopulateLodRows(export, staticMesh);
+                await RenderPreviewAsync(staticMesh, LodComboBox.SelectedIndex).ConfigureAwait(true);
+            }
+            else if (skeletalMesh is not null)
+            {
+                MeshSummaryRows.Add($"Materials: {skeletalMesh.Materials?.Count ?? 0}");
+                MeshSummaryRows.Add($"Sockets: {skeletalMesh.Sockets?.Count ?? 0}");
+                MeshSummaryRows.Add($"LOD Models: {skeletalMesh.LODModels?.Count ?? 0}");
+                MeshSummaryRows.Add($"Ref Skeleton Bones: {skeletalMesh.RefSkeleton?.Count ?? 0}");
+                MeshSummaryRows.Add($"Skeletal Depth: {skeletalMesh.SkeletalDepth}");
+                MeshSummaryRows.Add($"Clothing Assets: {skeletalMesh.ClothingAssets?.Count ?? 0}");
+
+                PopulateMaterials(skeletalMesh);
+                PopulateBones(skeletalMesh);
+                PopulatePreviewControlChoices(skeletalMesh);
+                PopulateWorkflowRows(export, skeletalMesh);
+                PopulateLodRows(export, skeletalMesh);
+                await RenderPreviewAsync(skeletalMesh, LodComboBox.SelectedIndex).ConfigureAwait(true);
+            }
+
             App.WriteDiagnosticsLog("Mesh.Inspector", $"Completed: {meshPath}");
         }
         catch (System.Exception ex)
@@ -553,6 +647,7 @@ public sealed partial class MeshPage : Page
             LodComboBox.ItemsSource = null;
             currentExport = null;
             currentSkeletalMesh = null;
+            currentStaticMesh = null;
             currentPreviewMesh = null;
             currentPreviewSourceMesh = null;
             currentPreviewLodIndex = -1;
@@ -567,15 +662,23 @@ public sealed partial class MeshPage : Page
         }
     }
 
-    private bool TryResolveSelectedMesh(string meshPath, out UnrealExportTableEntry? export, out USkeletalMesh? skeletalMesh)
+    private bool TryResolveSelectedMesh(string meshPath, out UnrealExportTableEntry? export, out MeshExportKind kind, out USkeletalMesh? skeletalMesh, out UStaticMesh? staticMesh)
     {
         export = null;
+        kind = MeshExportKind.Skeletal;
         skeletalMesh = null;
+        staticMesh = null;
 
         if (!meshExports.TryGetValue(meshPath, out export) || export is null)
             return false;
 
+        if (!meshExportKinds.TryGetValue(meshPath, out kind))
+            kind = MeshExportKind.Skeletal;
+
         if (resolvedMeshCache.TryGetValue(meshPath, out skeletalMesh) && skeletalMesh is not null)
+            return true;
+
+        if (resolvedStaticMeshCache.TryGetValue(meshPath, out staticMesh) && staticMesh is not null)
             return true;
 
         try
@@ -590,6 +693,7 @@ public sealed partial class MeshPage : Page
 
             if (export.UnrealObject is IUnrealObject { UObject: USkeletalMesh mesh })
             {
+                kind = MeshExportKind.Skeletal;
                 skeletalMesh = mesh;
                 resolvedMeshCache[meshPath] = mesh;
                 resolvedMeshSourcePaths[meshPath] = export.GetPathName();
@@ -606,6 +710,15 @@ public sealed partial class MeshPage : Page
                     resolvedMeshSourcePaths[meshPath] = export.GetPathName();
                     return true;
                 }
+            }
+
+            if (export.UnrealObject is IUnrealObject { UObject: UStaticMesh staticMeshObject })
+            {
+                kind = MeshExportKind.Static;
+                staticMesh = staticMeshObject;
+                resolvedStaticMeshCache[meshPath] = staticMeshObject;
+                resolvedMeshSourcePaths[meshPath] = export.GetPathName();
+                return true;
             }
         }
         catch (System.Exception ex)
@@ -669,6 +782,44 @@ public sealed partial class MeshPage : Page
         _ = RenderPreviewAsync(skeletalMesh, LodComboBox.SelectedIndex);
     }
 
+    private void PopulateLodRows(UnrealExportTableEntry export, UStaticMesh staticMesh)
+    {
+        LodSummaryRows.Clear();
+        SectionRows.Clear();
+        ChunkRows.Clear();
+        SectionDetailRows.Clear();
+
+        if (LodComboBox.SelectedIndex < 0 || staticMesh.LODModels is null || LodComboBox.SelectedIndex >= staticMesh.LODModels.Count)
+            return;
+
+        FStaticMeshRenderData lod = staticMesh.LODModels[LodComboBox.SelectedIndex];
+        LodSummaryRows.Add($"Export Path: {export.GetPathName()}");
+        LodSummaryRows.Add($"LOD Index: {LodComboBox.SelectedIndex}");
+        LodSummaryRows.Add($"Elements: {lod.Elements?.Count ?? 0}");
+        LodSummaryRows.Add($"Vertices: {lod.NumVertices:N0}");
+        LodSummaryRows.Add($"Indices: {lod.IndexBuffer?.Indices?.Count ?? 0:N0}");
+        LodSummaryRows.Add($"TexCoords: {lod.VertexBuffer?.NumTexCoords ?? 0}");
+        LodSummaryRows.Add($"LOD Size: {lod.NumVertices:N0}");
+
+        if (lod.Elements is not null)
+        {
+            for (int index = 0; index < lod.Elements.Count; index++)
+            {
+                FStaticMeshElement element = lod.Elements[index];
+                SectionRows.Add($"Element {index}: MaterialIndex={element.MaterialIndex}, FirstIndex={element.FirstIndex}, Triangles={element.NumTriangles}, MinVertex={element.MinVertexIndex}, MaxVertex={element.MaxVertexIndex}");
+            }
+        }
+
+        if (SectionRows.Count == 0)
+            SectionRows.Add("No static mesh elements were found for this LOD.");
+
+        RefreshPreviewSectionChoices();
+        if (SectionRows.Count > 0)
+            SectionRowsList.SelectedIndex = 0;
+
+        _ = RenderPreviewAsync(staticMesh, LodComboBox.SelectedIndex);
+    }
+
     private void SelectMesh(string exportPath)
     {
         if (MeshComboBox.ItemsSource is not IEnumerable<string> items)
@@ -677,6 +828,30 @@ public sealed partial class MeshPage : Page
         string? match = items.FirstOrDefault(item => string.Equals(item, exportPath, System.StringComparison.OrdinalIgnoreCase));
         if (match is not null)
             MeshComboBox.SelectedItem = match;
+    }
+
+    private void RegisterMeshExport(UnrealExportTableEntry export, MeshExportKind kind, List<string> names, string? pathOverride = null)
+    {
+        string path = pathOverride ?? export.GetPathName();
+        if (string.IsNullOrWhiteSpace(path))
+            return;
+
+        meshExports[path] = export;
+        meshExportKinds[path] = kind;
+        resolvedMeshSourcePaths[path] = pathOverride ?? path;
+        names.Add(path);
+    }
+
+    private static bool IsSkeletalMeshClass(string className)
+    {
+        return string.Equals(className, nameof(USkeletalMesh), System.StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(className, "SkeletalMesh", System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsStaticMeshClass(string className)
+    {
+        return string.Equals(className, nameof(UStaticMesh), System.StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(className, "StaticMesh", System.StringComparison.OrdinalIgnoreCase);
     }
 
     private void PopulateMaterials(USkeletalMesh skeletalMesh)
@@ -700,6 +875,25 @@ public sealed partial class MeshPage : Page
 
             string name = !string.IsNullOrWhiteSpace(material.GetPathName()) ? material.GetPathName() : material.Name ?? "(unnamed material)";
             MaterialRows.Add($"Material {index}: {name}");
+        }
+    }
+
+    private void PopulateStaticMaterials(UStaticMesh staticMesh)
+    {
+        MaterialRows.Clear();
+
+        if (staticMesh.LODModels is null || staticMesh.LODModels.Count == 0 || staticMesh.LODModels[0].Elements is null || staticMesh.LODModels[0].Elements.Count == 0)
+        {
+            MaterialRows.Add("No static mesh material elements found.");
+            return;
+        }
+
+        FStaticMeshRenderData lod = staticMesh.LODModels[0];
+        for (int index = 0; index < lod.Elements.Count; index++)
+        {
+            FStaticMeshElement element = lod.Elements[index];
+            string materialName = element.Material?.GetPathName() ?? element.Material?.Name ?? $"Material {index}";
+            MaterialRows.Add($"Element {index}: {materialName}");
         }
     }
 
@@ -732,6 +926,13 @@ public sealed partial class MeshPage : Page
         }
     }
 
+    private void PopulateStaticBones(UStaticMesh staticMesh)
+    {
+        BoneRows.Clear();
+        BoneRows.Add("Static mesh: no skeletal bones.");
+        BoneRows.Add($"LOD models: {staticMesh.LODModels?.Count ?? 0}");
+    }
+
     private void PopulateWorkflowRows(UnrealExportTableEntry export, USkeletalMesh skeletalMesh)
     {
         ExporterRows.Clear();
@@ -753,6 +954,26 @@ public sealed partial class MeshPage : Page
         ImporterRows.Add($"Replace All LODs: {(ReplaceAllLodsCheckBox.IsChecked == true ? "Yes" : "No")}");
         ImporterRows.Add("Next step: port the real FBX import backend, logs, and rebuild path from the WinForms importer panel.");
         ImporterRows.Add("Goal: keep the live diagnostics and rebuild status visible inside this WinUI workspace.");
+    }
+
+    private void PopulateWorkflowRows(UnrealExportTableEntry export, UStaticMesh staticMesh)
+    {
+        ExporterRows.Clear();
+        ImporterRows.Clear();
+
+        ExporterRows.Add($"Target UPK: {currentHeader?.FullFilename ?? "(none)"}");
+        ExporterRows.Add($"Selected mesh: {export.GetPathName()}");
+        ExporterRows.Add($"Selected LOD: {System.Math.Max(0, LodComboBox.SelectedIndex)}");
+        ExporterRows.Add($"Available LODs: {staticMesh.LODModels?.Count ?? 0}");
+        ExporterRows.Add($"FBX Output: {(string.IsNullOrWhiteSpace(exportFbxPath) ? "(not selected)" : exportFbxPath)}");
+        ExporterRows.Add("Static mesh preview is enabled through the mesh workspace export picker.");
+
+        ImporterRows.Add($"Target UPK: {currentHeader?.FullFilename ?? "(none)"}");
+        ImporterRows.Add($"Selected mesh: {export.GetPathName()}");
+        ImporterRows.Add($"Selected LOD: {System.Math.Max(0, LodComboBox.SelectedIndex)}");
+        ImporterRows.Add($"Replace-ready LODs: {staticMesh.LODModels?.Count ?? 0}");
+        ImporterRows.Add($"FBX Source: {(string.IsNullOrWhiteSpace(importFbxPath) ? "(not selected)" : importFbxPath)}");
+        ImporterRows.Add("Static mesh import/export flow is still routed through the shared mesh workspace.");
     }
 
     private void ApplyPreviewSceneSettings()
@@ -804,6 +1025,122 @@ public sealed partial class MeshPage : Page
         SectionRows.Clear();
         ChunkRows.Clear();
         SectionDetailRows.Clear();
+    }
+
+    private async Task RenderPreviewAsync(UStaticMesh staticMesh, int lodIndex)
+    {
+        if (staticMesh.LODModels is null || staticMesh.LODModels.Count == 0 || lodIndex < 0 || lodIndex >= staticMesh.LODModels.Count)
+        {
+            PreviewImage.Source = null;
+            PreviewImage.Visibility = Visibility.Collapsed;
+            PreviewSwapChainPanel.Visibility = Visibility.Collapsed;
+            PreviewStatusText.Text = "Selected mesh does not contain a renderable LOD.";
+            PreviewMeshStatsText.Text = "No renderable LOD";
+            currentPreviewMesh = null;
+            currentPreviewSourceMesh = null;
+            currentPreviewLodIndex = -1;
+            return;
+        }
+
+        try
+        {
+            string rendererName = PreviewRendererComboBox.SelectedItem as string ?? "VorticeDirect3D11";
+            string meshPath = currentExport?.GetPathName() ?? "(unknown)";
+            App.WriteDiagnosticsLog("Mesh.RenderPreview", $"Start: {meshPath} LOD={lodIndex} renderer={rendererName}");
+            bool needsMeshConversion =
+                currentPreviewMesh is null ||
+                !ReferenceEquals(currentPreviewSourceMesh, staticMesh) ||
+                currentPreviewLodIndex != lodIndex;
+
+            if (needsMeshConversion)
+            {
+                PreviewStatusText.Text = $"Building native WinUI preview mesh for LOD{lodIndex} with {rendererName}...";
+                MeshPreviewMesh previewMesh = await Task.Run(() =>
+                {
+                    return ue3ToPreviewMeshConverter.Convert(staticMesh, lodIndex);
+                }).ConfigureAwait(true);
+
+                previewScene.SetUe3Mesh(null);
+                previewScene.SetUe3Mesh(previewMesh);
+                PreviewDisplayModeComboBox.SelectedItem = nameof(MeshPreviewDisplayMode.Ue3Only);
+                currentPreviewMesh = previewScene.Ue3Mesh;
+                currentPreviewSourceMesh = staticMesh;
+                currentPreviewLodIndex = lodIndex;
+                RefreshPreviewSectionChoices();
+                PreviewShowUe3CheckBox.IsChecked = true;
+                if (previewScene.FbxMesh is null &&
+                    string.Equals(PreviewDisplayModeComboBox.SelectedItem as string, nameof(MeshPreviewDisplayMode.FbxOnly), System.StringComparison.Ordinal))
+                {
+                    PreviewDisplayModeComboBox.SelectedItem = nameof(MeshPreviewDisplayMode.Ue3Only);
+                }
+                SyncPreviewCamera(currentPreviewMesh);
+            }
+            else
+            {
+                PreviewStatusText.Text = $"Rendering native WinUI preview for LOD{lodIndex} with {rendererName}...";
+                previewScene.SetUe3Mesh(null);
+                previewScene.SetUe3Mesh(currentPreviewMesh);
+            }
+
+            if (currentPreviewMesh is null)
+                return;
+
+            UpdatePreviewHeader(rendererName);
+            ApplyPreviewSceneSettings();
+
+            int width = (int)Math.Max(320, PreviewSwapChainPanel.ActualWidth > 0 ? PreviewSwapChainPanel.ActualWidth : (PreviewImage.ActualWidth > 0 ? PreviewImage.ActualWidth : 960));
+            int height = (int)Math.Max(240, PreviewSwapChainPanel.ActualHeight > 0 ? PreviewSwapChainPanel.ActualHeight : (PreviewImage.ActualHeight > 0 ? PreviewImage.ActualHeight : 540));
+
+            if (string.Equals(rendererName, "VorticeDirect3D11", StringComparison.Ordinal))
+            {
+                PreviewImage.Source = null;
+                PreviewImage.Visibility = Visibility.Collapsed;
+                PreviewSwapChainPanel.Visibility = Visibility.Visible;
+                d3dPreviewRenderer.AttachToPanel(PreviewSwapChainPanel, DispatcherQueue);
+                d3dPreviewRenderer.SetFrame(previewScene, previewCamera);
+                PreviewStatusText.Text = GetPreviewStatusText(rendererName, d3dPreviewRenderer.LastRenderSucceeded, d3dPreviewRenderer.Diagnostics);
+                PreviewMeshStatsText.Text = BuildPreviewStatsText(rendererName);
+                if (!d3dPreviewRenderer.LastRenderSucceeded)
+                    StatusRows.Add($"Native preview: {d3dPreviewRenderer.Diagnostics}");
+            }
+            else
+            {
+                d3dPreviewRenderer.DetachPanel();
+                PreviewSwapChainPanel.Visibility = Visibility.Collapsed;
+                PreviewImage.Visibility = Visibility.Visible;
+
+                WriteableBitmap bitmap = previewRenderer.Render(
+                    previewScene,
+                    width,
+                    height,
+                    previewCamera,
+                    GetSelectedEnum(PreviewShadingModeComboBox, MeshPreviewShadingMode.Clay),
+                    GetSelectedEnum(PreviewBackgroundComboBox, MeshPreviewBackgroundStyle.DarkGradient),
+                    GetSelectedEnum(PreviewLightingComboBox, MeshPreviewLightingPreset.Neutral),
+                    PreviewWireframeCheckBox.IsChecked == true,
+                    PreviewShowGroundCheckBox.IsChecked == true);
+                PreviewImage.Source = bitmap;
+            }
+
+            UpdateBoneNameOverlay();
+
+            if (!string.Equals(rendererName, "VorticeDirect3D11", StringComparison.Ordinal))
+            {
+                PreviewStatusText.Text = string.Empty;
+                PreviewMeshStatsText.Text = BuildPreviewStatsText(rendererName);
+            }
+
+            App.WriteDiagnosticsLog("Mesh.RenderPreview", $"Completed: {meshPath} LOD={lodIndex} renderer={rendererName}");
+        }
+        catch (System.Exception ex)
+        {
+            PreviewImage.Source = null;
+            PreviewImage.Visibility = Visibility.Collapsed;
+            PreviewSwapChainPanel.Visibility = Visibility.Collapsed;
+            PreviewStatusText.Text = $"Native preview failed: 0x{ex.HResult:X8} {ex.Message}";
+            PreviewMeshStatsText.Text = "Preview failed";
+            StatusRows.Add($"Native preview failed: 0x{ex.HResult:X8} {ex.Message}");
+        }
     }
 
     private async Task RenderPreviewAsync(USkeletalMesh skeletalMesh, int lodIndex)
@@ -1311,9 +1648,9 @@ public sealed partial class MeshPage : Page
         exportFbxPath = ExportFbxPathBox.Text?.Trim() ?? string.Empty;
         RefreshWorkflowRows();
 
-        if (currentExport is null || currentSkeletalMesh is null)
+        if (currentExport is null || (currentSkeletalMesh is null && currentStaticMesh is null))
         {
-            StatusRows.Add("Export FBX skipped: no SkeletalMesh export is selected yet.");
+            StatusRows.Add("Export FBX skipped: no mesh export is selected yet.");
             return;
         }
 
@@ -1331,9 +1668,9 @@ public sealed partial class MeshPage : Page
         importFbxPath = ImportFbxPathBox.Text?.Trim() ?? string.Empty;
         RefreshWorkflowRows();
 
-        if (currentExport is null || currentSkeletalMesh is null)
+        if (currentExport is null || (currentSkeletalMesh is null && currentStaticMesh is null))
         {
-            StatusRows.Add("Import Mesh skipped: no SkeletalMesh export is selected yet.");
+            StatusRows.Add("Import Mesh skipped: no mesh export is selected yet.");
             return;
         }
 
@@ -1356,12 +1693,15 @@ public sealed partial class MeshPage : Page
 
     private void RefreshWorkflowRows()
     {
-        if (currentExport is null || currentSkeletalMesh is null)
+        if (currentExport is null)
             return;
 
         exportFbxPath = ExportFbxPathBox.Text?.Trim() ?? exportFbxPath;
         importFbxPath = ImportFbxPathBox.Text?.Trim() ?? importFbxPath;
-        PopulateWorkflowRows(currentExport, currentSkeletalMesh);
+        if (currentStaticMesh is not null)
+            PopulateWorkflowRows(currentExport, currentStaticMesh);
+        else if (currentSkeletalMesh is not null)
+            PopulateWorkflowRows(currentExport, currentSkeletalMesh);
         RefreshWorkflowLists();
     }
 
@@ -1375,8 +1715,14 @@ public sealed partial class MeshPage : Page
 
     private async Task ExportSelectedMeshAsync()
     {
-        if (currentExport is null || currentSkeletalMesh is null)
+        if (currentExport is null)
             return;
+
+        if (currentSkeletalMesh is null)
+        {
+            StatusRows.Add("Export FBX skipped: static mesh export is not wired yet.");
+            return;
+        }
 
         try
         {
@@ -1411,8 +1757,14 @@ public sealed partial class MeshPage : Page
 
     private async Task ImportSelectedMeshAsync(bool replaceAllLods)
     {
-        if (currentExport is null || currentSkeletalMesh is null || currentHeader is null)
+        if (currentExport is null || currentHeader is null)
             return;
+
+        if (currentSkeletalMesh is null)
+        {
+            StatusRows.Add("Import Mesh skipped: static mesh import is not wired yet.");
+            return;
+        }
 
         try
         {
@@ -1648,6 +2000,9 @@ public sealed partial class MeshPage : Page
         List<string> filtered = allMeshPaths
             .Where(path => string.IsNullOrWhiteSpace(filter) ||
                            path.Contains(filter, System.StringComparison.OrdinalIgnoreCase))
+            .Where(path => IncludeStaticMeshesCheckBox.IsChecked == true ||
+                           !meshExportKinds.TryGetValue(path, out MeshExportKind kind) ||
+                           kind != MeshExportKind.Static)
             .OrderBy(path => path)
             .ToList();
 
@@ -1660,6 +2015,10 @@ public sealed partial class MeshPage : Page
         else if (filtered.Count > 0)
         {
             MeshComboBox.SelectedIndex = 0;
+        }
+        else
+        {
+            MeshComboBox.SelectedIndex = -1;
         }
     }
 

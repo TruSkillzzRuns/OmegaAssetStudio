@@ -25,6 +25,6 @@ jobs:
       with:
         name: OmegaAssetStudio-nightly-${{ env.DATE }}-Release-windows-x64
         path: |
-          ./src/bin/x64/Release/net8.0-windows
-          !./src/bin/x64/Release/net8.0-windows/*.pdb
-          !./src/bin/x64/Release/net8.0-windows/*.xml
+          ./src.winui/bin/x64/Release/net8.0-windows10.0.19041.0/win-x64
+          !./src.winui/bin/x64/Release/net8.0-windows10.0.19041.0/win-x64/*.pdb
+          !./src.winui/bin/x64/Release/net8.0-windows10.0.19041.0/win-x64/*.xml

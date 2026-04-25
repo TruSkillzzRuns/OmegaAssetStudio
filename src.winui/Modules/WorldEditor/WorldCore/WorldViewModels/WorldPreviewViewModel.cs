@@ -8,6 +8,7 @@ public sealed class WorldPreviewViewModel : WorldToolViewModelBase
 {
     private readonly WorldZoneService worldZoneService;
     private MhWorldZone? selectedZone;
+    private string selectedZoneSummary = "Select a zone to inspect details.";
     private string statusText = "Ready.";
 
     public WorldPreviewViewModel()
@@ -25,7 +26,21 @@ public sealed class WorldPreviewViewModel : WorldToolViewModelBase
     public MhWorldZone? SelectedZone
     {
         get => selectedZone;
-        set => SetProperty(ref selectedZone, value);
+        set
+        {
+            if (SetProperty(ref selectedZone, value))
+            {
+                SelectedZoneSummary = value is null
+                    ? "Select a zone to inspect details."
+                    : $"Name: {value.Name}\nSource: {value.SourceUpkPath}\nWorld Path: {value.WorldPath}";
+            }
+        }
+    }
+
+    public string SelectedZoneSummary
+    {
+        get => selectedZoneSummary;
+        set => SetProperty(ref selectedZoneSummary, value);
     }
 
     public string StatusText

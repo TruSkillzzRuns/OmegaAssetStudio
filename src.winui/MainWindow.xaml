@@ -12,7 +12,8 @@
         <NavigationView x:Name="RootNavigation"
                         IsBackButtonVisible="Collapsed"
                         IsSettingsVisible="False"
-                        Foreground="{ThemeResource OmegaAssetStudio.DarkSurfaceTextBrush}"
+                        Background="{ThemeResource OmegaAssetStudio.PageBackgroundBrush}"
+                        Foreground="{ThemeResource OmegaAssetStudio.TextPrimaryBrush}"
                         PaneDisplayMode="Left"
                         SelectionChanged="RootNavigation_OnSelectionChanged">
             <NavigationView.MenuItems>

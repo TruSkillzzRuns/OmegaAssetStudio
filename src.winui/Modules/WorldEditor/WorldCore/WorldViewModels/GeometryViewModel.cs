@@ -46,6 +46,7 @@ public sealed class GeometryViewModel : WorldToolViewModelBase
         Geometry.Clear();
         foreach (MhWorldGeometry item in geometryService.LoadGeometry(SourceUpkPath))
             Geometry.Add(item);
+        SelectedGeometry = Geometry.Count > 0 ? Geometry[0] : null;
         StatusText = $"Loaded {Geometry.Count} geometry item(s).";
     }
 }

@@ -11,7 +11,7 @@ namespace UpkManager.Models.UpkFile.Objects
 
         public override int GetBuilderSize()
         {
-            BuilderSize = 0;
+            BuilderSize = sizeof(int);
 
             foreach (var textureType in TextureTypes)
                 BuilderSize += textureType.GetBuilderSize();
@@ -53,6 +53,7 @@ namespace UpkManager.Models.UpkFile.Objects
         {
             BuilderSize = sizeof(int) * 3  // Width, Height, MipMapsCount
                          + sizeof(uint) * 2  // TextureFormat, TextureCreateFlags
+                         + sizeof(int)       // TextureIndices count
                          + TextureIndices.Count * sizeof(int);  // TextureIndices
 
             return BuilderSize;

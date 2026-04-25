@@ -100,10 +100,10 @@ public sealed partial class ObjectsPage : Page
         {
             CurrentPathText.Text = "Loading...";
             InspectorTitle.Text = "Inspector";
-            InspectorSubtitle.Text = "Reading package header, imports, exports, and names...";
+            InspectorSubtitle.Text = "Reading package tables...";
 
             UnrealHeader header = await repository.LoadUpkFile(path);
-            await header.ReadHeaderAsync(null);
+            await header.ReadTablesAsync(null);
 
             currentHeader = header;
             CurrentPathText.Text = path;
@@ -316,11 +316,11 @@ public sealed partial class ObjectsPage : Page
         {
             PropertyRows.Add($"Package: {Path.GetFileName(currentHeader.FullFilename)}");
 
-            if (item.IsImport)
-            {
-                UnrealImportTableEntry? import = currentHeader.ImportTable.FirstOrDefault(entry => entry.TableIndex == item.TableIndex);
-                if (import is not null)
+                if (item.IsImport)
                 {
+                    UnrealImportTableEntry? import = currentHeader.ImportTable.FirstOrDefault(entry => entry.TableIndex == item.TableIndex);
+                    if (import is not null)
+                    {
                     currentImportSelection = import;
                     PropertyRows.Add($"Type: Import");
                     PropertyRows.Add($"Class: ::{import.ClassNameIndex.Name}");
@@ -329,36 +329,46 @@ public sealed partial class ObjectsPage : Page
                     PopulateImportContext(import);
                 }
             }
-            else if (item.IsExport)
-            {
-                UnrealExportTableEntry? export = currentHeader.ExportTable.FirstOrDefault(entry => entry.TableIndex == item.TableIndex);
-                if (export is not null)
+                else if (item.IsExport)
                 {
-                    currentExportSelection = export;
-                    if (export.UnrealObject == null)
-                        await export.ParseUnrealObject(false, false);
+                    UnrealExportTableEntry? export = currentHeader.ExportTable.FirstOrDefault(entry => entry.TableIndex == item.TableIndex);
+                    if (export is not null)
+                    {
+                        currentExportSelection = export;
 
-                    PropertyRows.Add("Type: Export");
-                    PropertyRows.Add($"Class: {export.ClassReferenceNameIndex?.Name ?? "Unknown"}");
-                    PropertyRows.Add($"Super: {export.SuperReferenceNameIndex?.Name ?? "(none)"}");
-                    PropertyRows.Add($"Outer: {export.OuterReferenceNameIndex?.Name ?? "(root)"}");
+                        PropertyRows.Add("Type: Export");
+                        PropertyRows.Add($"Class: {export.ClassReferenceNameIndex?.Name ?? "Unknown"}");
+                        PropertyRows.Add($"Super: {export.SuperReferenceNameIndex?.Name ?? "(none)"}");
+                        PropertyRows.Add($"Outer: {export.OuterReferenceNameIndex?.Name ?? "(root)"}");
                     PropertyRows.Add($"Archetype: {export.ArchetypeReferenceNameIndex?.Name ?? "(none)"}");
                     PropertyRows.Add($"Serial Size: {export.SerialDataSize:N0}");
                     PropertyRows.Add($"Serial Offset: {export.SerialDataOffset:N0}");
                     PropertyRows.Add($"Flags: 0x{export.ObjectFlags:X}");
-                    PropertyRows.Add($"Export Flags: 0x{export.ExportFlags:X}");
-                    PropertyRows.Add($"Package Flags: 0x{export.PackageFlags:X}");
-                    PropertyRows.Add($"Package Guid: {new Guid(export.PackageGuid)}");
-                    PropertyRows.Add($"Net Object Count: {export.NetObjects.Count:N0}");
-                    if (export.UnrealObject is IUnrealObject unrealObject)
-                    {
-                        PropertyRows.Add($"Parsed Unreal Object: {export.UnrealObject.GetType().Name}");
-                        PopulatePropertyTree(unrealObject);
+                        PropertyRows.Add($"Export Flags: 0x{export.ExportFlags:X}");
+                        PropertyRows.Add($"Package Flags: 0x{export.PackageFlags:X}");
+                        PropertyRows.Add($"Package Guid: {new Guid(export.PackageGuid)}");
+                        PropertyRows.Add($"Net Object Count: {export.NetObjects.Count:N0}");
+                        if (export.UnrealObject == null)
+                        {
+                            try
+                            {
+                                await export.ParseUnrealObject(false, false);
+                            }
+                            catch (System.Exception ex)
+                            {
+                                PropertyRows.Add($"Parse Error: {ex.Message}");
+                            }
+                        }
+
+                        if (export.UnrealObject is IUnrealObject unrealObject)
+                        {
+                            PropertyRows.Add($"Parsed Unreal Object: {export.UnrealObject.GetType().Name}");
+                            PopulatePropertyTree(unrealObject);
+                        }
+                        PopulateExportContext(export);
                     }
-                    PopulateExportContext(export);
                 }
             }
-        }
 
         UpdateActionButtons();
     }

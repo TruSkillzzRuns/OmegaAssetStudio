@@ -44,6 +44,7 @@ public sealed class MeshConverter148ToNeutral
 
     private static MeshConversionResult ConvertSkeletalMesh(Upk148ExportTableEntry entry, USkeletalMesh skeletalMesh, Action<string>? log)
     {
+        FStaticLODModel? lod = skeletalMesh.LODModels?.FirstOrDefault();
         NeutralMesh neutralMesh = new()
         {
             Name = string.IsNullOrWhiteSpace(entry.ObjectName) ? entry.PathName : entry.ObjectName,
@@ -51,10 +52,9 @@ public sealed class MeshConverter148ToNeutral
             Skeleton = ConvertSkeleton(entry, skeletalMesh)
         };
 
-        FStaticLODModel? lod = skeletalMesh.LODModels?.FirstOrDefault();
         if (lod?.VertexBufferGPUSkin is not null)
         {
-            foreach (GLVertex vertex in lod.VertexBufferGPUSkin.GetGLVertexData())
+            foreach (GLVertex vertex in lod.VertexBufferGPUSkin.GetGLVertexData() ?? [])
             {
                 neutralMesh.Vertices.Add(new NeutralVertex(
                     vertex.Position,
@@ -68,22 +68,26 @@ public sealed class MeshConverter148ToNeutral
 
         if (lod is not null)
         {
-            neutralMesh.Indices.AddRange(lod.MultiSizeIndexContainer.IndexBuffer.Select(index => (int)index));
-            neutralMesh.Sections.AddRange(lod.Sections.Select((section, index) =>
+            neutralMesh.Indices.AddRange(lod.MultiSizeIndexContainer?.IndexBuffer?.Select(index => (int)index) ?? []);
+            neutralMesh.Sections.AddRange((lod.Sections ?? []).Select((section, index) =>
                 new NeutralSection($"Section {index}", (int)section.MaterialIndex, (int)section.BaseIndex, (int)(section.NumTriangles * 3))));
             neutralMesh.Lods.Add(new NeutralLod(0, 0, neutralMesh.Vertices.Count, 0, neutralMesh.Indices.Count));
         }
 
-        neutralMesh.MaterialSlots.AddRange(skeletalMesh.Materials.Select((material, index) =>
+        neutralMesh.MaterialSlots.AddRange((skeletalMesh.Materials ?? []).Select((material, index) =>
             new NeutralMaterialSlot(material?.ToString() ?? $"Material {index}", index, material?.ToString())));
-        neutralMesh.Sockets.AddRange((skeletalMesh.Sockets ?? []).Select(socket => new NeutralSocket(
-            socket.LoadObject<USkeletalMeshSocket>()?.SocketName.Name ?? socket.GetPathName(),
-            socket.LoadObject<USkeletalMeshSocket>()?.BoneName.Name ?? string.Empty,
-            socket.LoadObject<USkeletalMeshSocket>()?.RelativeLocation.ToVector3() ?? Vector3.Zero,
-            socket.LoadObject<USkeletalMeshSocket>() is USkeletalMeshSocket loadedSocket
-                ? new Vector3(loadedSocket.RelativeRotation.Pitch, loadedSocket.RelativeRotation.Yaw, loadedSocket.RelativeRotation.Roll)
-                : Vector3.Zero,
-            socket.LoadObject<USkeletalMeshSocket>()?.RelativeScale.ToVector3() ?? Vector3.One)));
+        neutralMesh.Sockets.AddRange((skeletalMesh.Sockets ?? []).Where(socket => socket is not null).Select(socket =>
+        {
+            USkeletalMeshSocket? loadedSocket = socket.LoadObject<USkeletalMeshSocket>();
+            return new NeutralSocket(
+                loadedSocket?.SocketName?.Name ?? socket?.GetPathName() ?? string.Empty,
+                loadedSocket?.BoneName?.Name ?? string.Empty,
+                loadedSocket?.RelativeLocation?.ToVector3() ?? Vector3.Zero,
+                loadedSocket?.RelativeRotation is not null
+                    ? new Vector3(loadedSocket.RelativeRotation.Pitch, loadedSocket.RelativeRotation.Yaw, loadedSocket.RelativeRotation.Roll)
+                    : Vector3.Zero,
+                loadedSocket?.RelativeScale?.ToVector3() ?? Vector3.One);
+        }));
         neutralMesh.Bounds = ToBounds(skeletalMesh.Bounds);
         log?.Invoke($"Converted skeletal mesh {entry.PathName} into {neutralMesh.Vertices.Count} vertices.");
 
@@ -98,10 +102,10 @@ public sealed class MeshConverter148ToNeutral
             IsSkeletal = false
         };
 
-        if (staticMesh.LODModels.Count > 0)
+        if (staticMesh.LODModels is not null && staticMesh.LODModels.Count > 0)
         {
             FStaticMeshRenderData lod = staticMesh.LODModels[0];
-            foreach (GLVertex vertex in lod.GetGLVertexData())
+            foreach (GLVertex vertex in lod.GetGLVertexData() ?? [])
             {
                 neutralMesh.Vertices.Add(new NeutralVertex(
                     vertex.Position,
@@ -112,7 +116,7 @@ public sealed class MeshConverter148ToNeutral
                     []));
             }
 
-            neutralMesh.Indices.AddRange(lod.IndexBuffer.Indices.Select(index => (int)index));
+            neutralMesh.Indices.AddRange(lod.IndexBuffer?.Indices?.Select(index => (int)index) ?? []);
             neutralMesh.Sections.Add(new NeutralSection("StaticSection0", 0, 0, neutralMesh.Indices.Count));
             neutralMesh.Lods.Add(new NeutralLod(0, 0, neutralMesh.Vertices.Count, 0, neutralMesh.Indices.Count));
         }
