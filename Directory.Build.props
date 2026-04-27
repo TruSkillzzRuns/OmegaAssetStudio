@@ -1,5 +1,12 @@
 <Project>
   <PropertyGroup>
-    <NuGetAudit>false</NuGetAudit>
+    <MSBuildEnableWorkloadResolver>false</MSBuildEnableWorkloadResolver>
+    <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
+    <BuildInParallel>false</BuildInParallel>
+    <NETCoreSdkRuntimeIdentifier>win-x64</NETCoreSdkRuntimeIdentifier>
+    <NETCoreSdkPortableRuntimeIdentifier>win-x64</NETCoreSdkPortableRuntimeIdentifier>
+    <NetCoreRoot>$(MSBuildExtensionsPath)..\..\</NetCoreRoot>
+    <NetCoreTargetingPackRoot>$(NetCoreRoot)packs</NetCoreTargetingPackRoot>
+    <BundledRuntimeIdentifierGraphFile>$(NetCoreRoot)sdk\8.0.419\RuntimeIdentifierGraph.json</BundledRuntimeIdentifierGraphFile>
   </PropertyGroup>
 </Project>

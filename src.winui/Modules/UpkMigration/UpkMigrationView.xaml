@@ -5,11 +5,17 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:local="using:OmegaAssetStudio.WinUI.Modules.UpkMigration"
-    mc:Ignorable="d">
+    mc:Ignorable="d"
+    UseLayoutRounding="True">
 
-    <TabView Padding="20">
+    <TabView Padding="20" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
         <TabViewItem Header="Migration">
-            <Grid Padding="0" RowDefinitions="Auto,*" ColumnDefinitions="300,*,360" ColumnSpacing="12">
+            <Grid Padding="0"
+                  RowDefinitions="Auto,*"
+                  ColumnDefinitions="1.05*,2.1*,1.05*"
+                  ColumnSpacing="12"
+                  HorizontalAlignment="Stretch"
+                  VerticalAlignment="Stretch">
                 <StackPanel Grid.Row="0" Grid.ColumnSpan="3" Spacing="8">
                     <TextBlock Text="UPK Migration"
                                FontSize="28"
@@ -93,6 +99,119 @@
                             <StackPanel Spacing="10">
                                 <TextBlock Text="Selected Job Details" FontSize="18" FontWeight="SemiBold" />
                                 <TextBlock Text="{Binding SelectedJobDetails}" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Padding="12" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                            <StackPanel Spacing="10">
+                                <TextBlock Text="ClientMap Deploy" FontSize="18" FontWeight="SemiBold" />
+                                <TextBox Header="Deploy source *_152.upk"
+                                         Text="{Binding DeploySourceUpkPath, Mode=TwoWay}"
+                                         PlaceholderText="Select the migrated UPK to deploy." />
+                                <Button Content="Browse Source..."
+                                        Command="{Binding BrowseDeploySourceCommand}" />
+                                <TextBox Header="Target client root"
+                                         Text="{Binding DeployTargetClientRoot, Mode=TwoWay}"
+                                         PlaceholderText="Select the 1.52 cooked content root." />
+                                <Button Content="Browse Target..."
+                                        Command="{Binding BrowseDeployTargetCommand}" />
+                                <TextBox Header="Deploy file name"
+                                         Text="{Binding DeployFileName, Mode=TwoWay}"
+                                         PlaceholderText="Rename the deployed UPK filename." />
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button Content="Deploy Selected UPK"
+                                        Command="{Binding DeploySelectedUpkCommand}" />
+                                    <Button Content="Reset Fields"
+                                            Command="{Binding ResetDeployFieldsCommand}" />
+                                </StackPanel>
+                                <TextBlock Text="{Binding DeployStatusText}" TextWrapping="Wrap" />
+                                <TextBlock Text="{Binding DeploySummaryText}" TextWrapping="Wrap" Opacity="0.85" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Padding="12" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                            <StackPanel Spacing="10">
+                                <TextBlock Text="Backport Missing Packages" FontSize="18" FontWeight="SemiBold" />
+                                <TextBox Header="Log file"
+                                         Text="{Binding BackportLogPath, Mode=TwoWay}"
+                                         PlaceholderText="Select the client log that lists missing packages." />
+                                <Button Content="Browse Log..."
+                                        Command="{Binding BrowseBackportLogCommand}" />
+                                <TextBox Header="1.48 source root"
+                                         Text="{Binding BackportSourceRoot, Mode=TwoWay}"
+                                         PlaceholderText="Select the 1.48 cooked content root." />
+                                <Button Content="Browse Source Root..."
+                                        Command="{Binding BrowseBackportSourceCommand}" />
+                                <TextBox Header="ServerEmu root"
+                                         Text="{Binding BackportServerEmuRoot, Mode=TwoWay}"
+                                         PlaceholderText="Select the server emulator root, if available." />
+                                <Button Content="Browse ServerEmu..."
+                                        Command="{Binding BrowseBackportServerEmuCommand}" />
+                                <TextBox Header="Backport output root"
+                                         Text="{Binding BackportOutputRoot, Mode=TwoWay}"
+                                         PlaceholderText="Select the folder for backport staging and reports." />
+                                <Button Content="Browse Output..."
+                                        Command="{Binding BrowseBackportOutputCommand}" />
+                                <TextBox Header="Target client root"
+                                         Text="{Binding BackportTargetRoot, Mode=TwoWay}"
+                                         PlaceholderText="Select the 1.52 cooked content root for backport deploy." />
+                                <Button Content="Browse Target..."
+                                        Command="{Binding BrowseBackportTargetCommand}" />
+                                <CheckBox Content="Refresh package index"
+                                          IsChecked="{Binding BackportRefreshPackageIndex, Mode=TwoWay}" />
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button Content="Find Missing Packages"
+                                            Command="{Binding FindMissingPackagesCommand}" />
+                                    <Button Content="Backport and Deploy"
+                                            Command="{Binding BackportAndDeployCommand}" />
+                                    <Button Content="Clear Cache"
+                                            Command="{Binding ClearCacheCommand}" />
+                                </StackPanel>
+                                <TextBlock Text="Missing Packages" FontWeight="SemiBold" />
+                                <Grid ColumnDefinitions="2*,*,2*,2*,2*" ColumnSpacing="8">
+                                    <TextBlock Text="Package" FontWeight="SemiBold" />
+                                    <TextBlock Grid.Column="1" Text="Status" FontWeight="SemiBold" />
+                                    <TextBlock Grid.Column="2" Text="Source" FontWeight="SemiBold" />
+                                    <TextBlock Grid.Column="3" Text="Output" FontWeight="SemiBold" />
+                                    <TextBlock Grid.Column="4" Text="Deployed" FontWeight="SemiBold" />
+                                </Grid>
+                                <ListView ItemsSource="{Binding BackportPackageStatuses}" MinHeight="160">
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid ColumnDefinitions="2*,*,2*,2*,2*" ColumnSpacing="8" Padding="0,4">
+                                                <TextBlock Text="{Binding PackageName}"
+                                                           TextWrapping="NoWrap"
+                                                           TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Grid.Column="1" Text="{Binding Status}" />
+                                                <TextBlock Grid.Column="2"
+                                                           Text="{Binding SourcePath}"
+                                                           TextWrapping="NoWrap"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           FontSize="12"
+                                                           Opacity="0.85" />
+                                                <TextBlock Grid.Column="3"
+                                                           Text="{Binding OutputPath}"
+                                                           TextWrapping="NoWrap"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           FontSize="12"
+                                                           Opacity="0.85" />
+                                                <TextBlock Grid.Column="4"
+                                                           Text="{Binding DeployedPath}"
+                                                           TextWrapping="NoWrap"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           FontSize="12"
+                                                           Opacity="0.85" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+                                <ProgressBar Minimum="0"
+                                             Maximum="100"
+                                             Value="{Binding BackportProgress}"
+                                             Height="8" />
+                                <TextBlock Text="{Binding BackportProgressText}" TextWrapping="Wrap" Opacity="0.8" />
+                                <TextBlock Text="{Binding BackportStatusText}" TextWrapping="Wrap" />
+                                <TextBlock Text="{Binding BackportSummaryText}" TextWrapping="Wrap" Opacity="0.85" />
                             </StackPanel>
                         </Border>
                     </StackPanel>

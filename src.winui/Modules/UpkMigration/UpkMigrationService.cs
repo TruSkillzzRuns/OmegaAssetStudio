@@ -76,6 +76,13 @@ public sealed class UpkMigrationService
         AppendLogFileLine("=== UPK Migration service initialized ===");
     }
 
+    public void ClearCache()
+    {
+        cache.Clear();
+        UpdateStatus("Migration cache cleared.");
+        AppendLogFileLine("[INFO] [SERVICE] Migration cache cleared.");
+    }
+
     public async Task RunMigrationAsync(IEnumerable<MigrationJob> jobs, string outputDirectory, string? textureManifestDirectory = null)
     {
         List<MigrationJob> jobList = jobs.ToList();
@@ -173,6 +180,7 @@ public sealed class UpkMigrationService
                         state.ErrorCount = cachedResult.Errors.Count;
                         state.Status = MigrationJobStatus.Completed;
                         state.CurrentStep = "Cache hit";
+                        state.AnalyzeProgress = 100;
                         state.MigrateProgress = 100;
                     }).ConfigureAwait(false);
                     AddLog(job, "Cache hit: migration skipped.");

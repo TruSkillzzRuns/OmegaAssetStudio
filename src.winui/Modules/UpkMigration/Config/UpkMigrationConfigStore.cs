@@ -48,7 +48,11 @@ internal static class UpkMigrationConfigStore
         {
             OutputRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "OmegaAssetStudio_UpkMigration"),
             ResourcePrototypeOutputRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "OmegaAssetStudio_UpkMigration_ResourceScanner"),
-            LogPath = RuntimeLogPaths.UpkMigrationResourceScannerLogPath
+            BackportOutputRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "OmegaAssetStudio_UpkMigration_Backport"),
+            BackportTargetRoot = string.Empty,
+            BackportRefreshPackageIndex = true,
+            LogPath = RuntimeLogPaths.UpkMigrationResourceScannerLogPath,
+            BackportLogPath = RuntimeLogPaths.UpkMigrationLogPath
         };
     }
 }

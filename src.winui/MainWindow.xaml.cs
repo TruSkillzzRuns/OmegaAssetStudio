@@ -2,7 +2,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using OmegaAssetStudio.WinUI.Modules.Settings;
-using OmegaAssetStudio.WinUI.Modules.WorldEditor;
 using OmegaAssetStudio.WinUI.Modules.MaterialEditor;
 using OmegaAssetStudio.WinUI.Modules.MFL;
 using OmegaAssetStudio.WinUI.Modules.UpkMigration;
@@ -92,9 +91,6 @@ public sealed partial class MainWindow : Window
                     break;
                 case "mfl":
                     RootFrame.Navigate(typeof(MFLView), parameter);
-                    break;
-                case "worldeditor":
-                    RootFrame.Navigate(typeof(WorldEditorPage), parameter);
                     break;
                 case "materialeditor":
                     RootFrame.Navigate(typeof(MaterialEditorView), parameter);

@@ -47,11 +47,6 @@
                         <SymbolIcon Symbol="Repair" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
-                <NavigationViewItem Content="World Editor" Tag="worldeditor">
-                    <NavigationViewItem.Icon>
-                        <SymbolIcon Symbol="World" />
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
                 <NavigationViewItem Content="Material Editor" Tag="materialeditor">
                     <NavigationViewItem.Icon>
                         <SymbolIcon Symbol="Edit" />

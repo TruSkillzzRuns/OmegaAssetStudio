@@ -20,18 +20,18 @@ namespace UpkIndexGenerator
         public class PackageImportInfo
         {
             public int Id { get; set; }
-            public string FullObjectPath { get; set; }
-            public string PackageName { get; set; }
-            public string ObjectName { get; set; }
-            public string ClassName { get; set; }
-            public string SourceUpkFile { get; set; }
+            public string FullObjectPath { get; set; } = string.Empty;
+            public string PackageName { get; set; } = string.Empty;
+            public string? ObjectName { get; set; }
+            public string? ClassName { get; set; }
+            public string SourceUpkFile { get; set; } = string.Empty;
         }
 
         public class UpkObjectLocation
         {
             public int Id { get; set; }
-            public string ObjectPath { get; set; }
-            public string UpkFileName { get; set; }
+            public string ObjectPath { get; set; } = string.Empty;
+            public string UpkFileName { get; set; } = string.Empty;
             public int ExportIndex { get; set; }
             public long FileSize { get; set; }
         }
@@ -42,7 +42,7 @@ namespace UpkIndexGenerator
         public class ScannedFile
         {
             public int Id { get; set; }
-            public string FileName { get; set; }
+            public string FileName { get; set; } = string.Empty;
             public long FileSize { get; set; }
             public DateTime LastScannedAt { get; set; }
             public bool ImportsDone { get; set; }
@@ -52,9 +52,9 @@ namespace UpkIndexGenerator
         public class UpkIndexContext(string dbPath) : DbContext
         {
             private readonly string dbPath = dbPath;
-            public DbSet<PackageImportInfo> PackageImports { get; set; }
-            public DbSet<UpkObjectLocation> ObjectLocations { get; set; }
-            public DbSet<ScannedFile> ScannedFiles { get; set; }
+            public DbSet<PackageImportInfo> PackageImports { get; set; } = null!;
+            public DbSet<UpkObjectLocation> ObjectLocations { get; set; } = null!;
+            public DbSet<ScannedFile> ScannedFiles { get; set; } = null!;
 
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
             {
@@ -126,7 +126,7 @@ namespace UpkIndexGenerator
                 context.PackageImports.Add(new PackageImportInfo
                 {
                     FullObjectPath = fullPath,
-                    PackageName = packageName,
+                    PackageName = packageName ?? string.Empty,
                     ObjectName = importEntry.ObjectNameIndex?.Name,
                     ClassName = importEntry.ClassNameIndex?.Name,
                     SourceUpkFile = fileName
@@ -185,9 +185,8 @@ namespace UpkIndexGenerator
                 return;
 
             var exportPaths = header.ExportTable
-                .Select(e => e?.GetPathName())
+                .Select(e => e?.GetPathName()?.ToLowerInvariant())
                 .Where(p => !string.IsNullOrEmpty(p))
-                .Select(p => p.ToLowerInvariant())
                 .Distinct()
                 .ToList();
 
@@ -207,7 +206,7 @@ namespace UpkIndexGenerator
 
             var swfMoviePaths = header.ExportTable
                 .Where(e => string.Equals(e?.ClassReferenceNameIndex?.Name, "SwfMovie", StringComparison.OrdinalIgnoreCase))
-                .Select(e => e.GetPathName().ToLowerInvariant())
+                .Select(e => e?.GetPathName()?.ToLowerInvariant())
                 .Where(p => !string.IsNullOrEmpty(p))
                 .Distinct()
                 .ToList();
@@ -219,7 +218,10 @@ namespace UpkIndexGenerator
 
             foreach (var entry in header.ExportTable)
             {
-                var fullPath = entry?.GetPathName().ToLowerInvariant();
+                if (entry == null)
+                    continue;
+
+                var fullPath = entry.GetPathName()?.ToLowerInvariant();
                 if (string.IsNullOrEmpty(fullPath) || !relevantSet.Contains(fullPath))
                     continue;
 

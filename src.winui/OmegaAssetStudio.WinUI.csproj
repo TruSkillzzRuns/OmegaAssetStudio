@@ -15,9 +15,10 @@
     <PlatformTarget>x64</PlatformTarget>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
-    <ApplicationIcon>Assets\OmegaAssetStudio.ico</ApplicationIcon>
+    <ApplicationIcon>..\src\Resources\MHIcon.ico</ApplicationIcon>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <NoWarn>$(NoWarn);NU1900</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -29,6 +30,7 @@
   <ItemGroup>
     <Manifest Include="$(ApplicationManifest)" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.250907003" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.8" />
     <PackageReference Include="System.Security.Permissions" Version="6.0.0" />
   </ItemGroup>
 
@@ -66,6 +68,7 @@
     <Compile Include="..\src.core\ThanosMigration\Services\ThanosPrototypeDiscoveryService.cs" />
     <Compile Include="..\src.core\ThanosMigration\Services\ThanosPrototypeMergePlanner.cs" />
     <Compile Include="..\src.core\ThanosMigration\Services\ThanosPrototypeMergerService.cs" />
+    <Compile Include="..\UpkIndexGenerator\UpkIndexingSystem.cs" Link="Modules\UpkMigration\Indexing\UpkIndexingSystem.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -75,7 +78,7 @@
     <Content Include="Assets\OmegaAssetStudio.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Assets\OmegaAssetStudio.ico">
+    <Content Include="..\src\Resources\MHIcon.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Modules\Workflows\WorkflowText\*.txt">

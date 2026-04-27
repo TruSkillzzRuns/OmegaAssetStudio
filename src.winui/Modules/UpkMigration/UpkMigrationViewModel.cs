@@ -15,7 +15,7 @@ using OmegaAssetStudio.WinUI.Modules.UpkMigration.Models;
 
 namespace OmegaAssetStudio.WinUI.Modules.UpkMigration;
 
-public sealed class UpkMigrationViewModel : INotifyPropertyChanged
+public sealed partial class UpkMigrationViewModel : INotifyPropertyChanged
 {
     private readonly DispatcherQueue? dispatcherQueue;
     private readonly UpkMigrationService service;
@@ -319,6 +319,7 @@ public sealed class UpkMigrationViewModel : INotifyPropertyChanged
         MigrateThanosCommand = new AsyncRelayCommand(MigrateThanosAsync);
         UpdateTextureManifestCommand = new AsyncRelayCommand(UpdateTextureManifestAsync);
 
+        InitializeToolingState();
         UpdateStatus("Ready.");
         ResourcePrototypeSummaryText = "No resource prototype scan has run yet.";
     }

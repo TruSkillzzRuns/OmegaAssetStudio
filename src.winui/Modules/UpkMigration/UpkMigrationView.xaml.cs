@@ -28,6 +28,13 @@ public sealed partial class UpkMigrationView : Page
         ViewModel.BrowseTextureManifestDirectoryRequestedAsync = BrowseOutputDirectoryAsync;
         ViewModel.BrowseResourcePrototypeSourceRequestedAsync = BrowseOutputDirectoryAsync;
         ViewModel.BrowseResourcePrototypeOutputRequestedAsync = BrowseOutputDirectoryAsync;
+        ViewModel.BrowseBackportLogRequestedAsync = BrowseBackportLogAsync;
+        ViewModel.BrowseBackportSourceRequestedAsync = BrowseOutputDirectoryAsync;
+        ViewModel.BrowseBackportServerEmuRequestedAsync = BrowseOutputDirectoryAsync;
+        ViewModel.BrowseBackportOutputRequestedAsync = BrowseOutputDirectoryAsync;
+        ViewModel.BrowseBackportTargetRequestedAsync = BrowseOutputDirectoryAsync;
+        ViewModel.BrowseDeploySourceRequestedAsync = BrowseDeploySourceAsync;
+        ViewModel.BrowseDeployTargetRequestedAsync = BrowseOutputDirectoryAsync;
         ViewModel.PrototypeMerger.BrowseReportRequestedAsync = BrowseDependencyReportAsync;
         ViewModel.PrototypeMerger.BrowseClient148RootRequestedAsync = BrowseOutputDirectoryAsync;
         ViewModel.PrototypeMerger.BrowseClient152RootRequestedAsync = BrowseOutputDirectoryAsync;
@@ -58,6 +65,29 @@ public sealed partial class UpkMigrationView : Page
 
         StorageFolder? folder = await picker.PickSingleFolderAsync();
         return folder?.Path;
+    }
+
+    private async Task<string?> BrowseBackportLogAsync()
+    {
+        FileOpenPicker picker = new();
+        picker.FileTypeFilter.Add(".log");
+        picker.FileTypeFilter.Add(".txt");
+        picker.SuggestedStartLocation = PickerLocationId.Desktop;
+        InitializePicker(picker);
+
+        StorageFile? file = await picker.PickSingleFileAsync();
+        return file?.Path;
+    }
+
+    private async Task<string?> BrowseDeploySourceAsync()
+    {
+        FileOpenPicker picker = new();
+        picker.FileTypeFilter.Add(".upk");
+        picker.SuggestedStartLocation = PickerLocationId.Desktop;
+        InitializePicker(picker);
+
+        StorageFile? file = await picker.PickSingleFileAsync();
+        return file?.Path;
     }
 
     private async Task<string?> BrowseDependencyReportAsync()

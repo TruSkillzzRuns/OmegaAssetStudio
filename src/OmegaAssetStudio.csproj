@@ -7,7 +7,6 @@
     <Nullable>disable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <UseWPF>true</UseWPF>
-    <ApplicationIcon>Resources\MHIcon.ico</ApplicationIcon>
     <ImplicitUsings>enable</ImplicitUsings>    
 	<PlatformTarget>x64</PlatformTarget>
     <Platforms>x64</Platforms>
@@ -16,12 +15,8 @@
     <RootNamespace>OmegaAssetStudio.Core</RootNamespace>
     <AssemblyVersion>1.0</AssemblyVersion>
     <GenerateResourceWarnOnBinaryFormatterUse>false</GenerateResourceWarnOnBinaryFormatterUse>
-    <NoWarn>CS8632</NoWarn>
+    <NoWarn>$(NoWarn);CS8632;NU1900</NoWarn>
   </PropertyGroup>
-  
-  <ItemGroup>
-    <Content Include="Resources\MHIcon.ico" />
-  </ItemGroup>
   
   <ItemGroup>
     <PackageReference Include="AssimpNet" Version="5.0.0-beta1" />

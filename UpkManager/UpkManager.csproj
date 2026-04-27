@@ -5,6 +5,7 @@
     <Platform>x64</Platform>
     <PlatformTarget>x64</PlatformTarget>
     <Platforms>x64</Platforms>
+    <NoWarn>$(NoWarn);NU1900</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="MessagePack" Version="3.1.4" />

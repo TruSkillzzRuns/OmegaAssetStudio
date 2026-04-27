@@ -54,6 +54,18 @@ public sealed class UpkMigrationCache
         Save();
     }
 
+    public void Clear()
+    {
+        entries.Clear();
+
+        string backupCachePath = Path.Combine(cacheDirectory, "cache.json.bak");
+        if (File.Exists(cachePath))
+            File.Delete(cachePath);
+
+        if (File.Exists(backupCachePath))
+            File.Delete(backupCachePath);
+    }
+
     public static string ComputeFingerprint(string sourcePath)
     {
         FileInfo info = new(sourcePath);
